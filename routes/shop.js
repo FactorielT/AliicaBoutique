@@ -294,7 +294,7 @@ router.get('/api/produits', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
-router.get('/robots.txt', (req, res) => res.type('text').send('User-agent: *\nDisallow: /gestion\n'));
+router.get('/robots.txt', (req, res) => res.type('text').send('User-agent: *\nAllow: /\n'));
 
 module.exports = router;
 module.exports.escapeHtml = escapeHtml;

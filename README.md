@@ -5,14 +5,14 @@ Node.js **24 LTS (≥ 24.22.1)** · Express + EJS · PostgreSQL · prêt pour Re
 Un seul projet contient :
 
 - **le site public** (`/`) : accueil avec diaporama et sections, menus Hommes / Femmes, catalogue avec filtres, fiche produit (tailles, couleurs), favoris, panier, commande avec code promo, suivi de commande, WhatsApp ;
-- **l'application de gestion** (`/gestion`) : tableau de bord, caisse, ventes, articles, stock, approvisionnements, clients, fournisseurs, rapports, dépenses et administration du site web.
+- **l'application de gestion**, accessible uniquement par l'adresse secrète **`/applicationlogin`** (aucun lien sur le site) : tableau de bord, caisse, ventes, articles, stock, approvisionnements, clients, fournisseurs, rapports, dépenses et administration du site web.
 
 ## Démarrage en local
 
 ```bash
 npm install
 cp .env.example .env        # puis adaptez DATABASE_URL
-npm start                   # http://localhost:3000  et  http://localhost:3000/gestion
+npm start                   # site : http://localhost:3000   application : http://localhost:3000/applicationlogin
 ```
 
 Au premier démarrage, l'application crée automatiquement les tables, les catégories, les pages d'information, le code `ALIICA2025` et un **catalogue de démonstration** (à désactiver avec `SEED_DEMO=false`).
@@ -32,6 +32,14 @@ Au premier démarrage, l'application crée automatiquement les tables, les caté
 3. Chaque `git push` redéploie automatiquement.
 
 Les photos sont enregistrées **dans PostgreSQL** (redimensionnées en WebP) : elles ne disparaissent pas lors des redéploiements Render.
+
+## Accès à l'application
+
+- Adresse de connexion : `https://<votre-site>/applicationlogin` (modifiable avec la variable `APP_LOGIN_PATH`).
+- Aucun bouton ni lien du site ne mène à l'application, et `robots.txt` ne la mentionne pas.
+- Une personne non connectée qui tape `/gestion/...` obtient « Page introuvable » : l'existence de l'application n'est pas révélée.
+- Sur un appareil où la patronne ou la gérante s'est déjà connectée, une session expirée ramène directement à la page de connexion.
+- Après déconnexion, on revient sur `/applicationlogin`.
 
 ## Sécurité — avis Render d'octobre 2026
 

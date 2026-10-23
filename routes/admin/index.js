@@ -1,23 +1,26 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const db = require('../../src/db');
-const { requireAuth } = require('../../src/auth');
+const { requireAuth, LOGIN_PATH } = require('../../src/auth');
 
 const router = express.Router();
 
-router.use((req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
+const nocache = (req, res, next) => { res.set('Cache-Control', 'no-store'); res.set('X-Robots-Tag', 'noindex, nofollow'); next(); };
+router.use(nocache);
 
-// ---------- Connexion ----------
+// ---------- Connexion (montée sur l'adresse secrète LOGIN_PATH, voir server.js) ----------
+const login = express.Router();
+login.use(nocache);
 const tentatives = new Map();
-router.get('/connexion', (req, res) => {
+login.get('/', (req, res) => {
   if (req.session.user) return res.redirect('/gestion');
   return res.render('admin/connexion', { erreur: null, identifiant: '' });
 });
-router.post('/connexion', async (req, res, next) => {
+login.post('/', async (req, res, next) => {
   try {
     const ip = req.ip; const t = tentatives.get(ip) || { n: 0, at: Date.now() };
     if (Date.now() - t.at > 15 * 60000) { t.n = 0; t.at = Date.now(); }
-    if (t.n >= 10) return res.render('admin/connexion', { erreur: 'Trop de tentatives. Réessayez dans 15 minutes.', identifiant: '' });
+    if (t.n >= 10) return res.status(429).render('admin/connexion', { erreur: 'Trop de tentatives. Réessayez dans 15 minutes.', identifiant: '' });
     const identifiant = String(req.body.identifiant || '').trim().toLowerCase();
     const u = await db.one('SELECT * FROM utilisateurs WHERE LOWER(identifiant)=$1 AND actif', [identifiant]);
     if (!u || !bcrypt.compareSync(String(req.body.mot_de_passe || ''), u.mot_de_passe)) {
@@ -29,11 +32,13 @@ router.post('/connexion', async (req, res, next) => {
     return req.session.regenerate((err) => {
       if (err) return next(err);
       req.session.user = { id: u.id, nom: u.nom, role: u.role, identifiant: u.identifiant };
+      // Marque cet appareil comme appareil de la boutique (permet de revenir à la connexion si la session expire)
+      res.cookie('aliica_app', '1', { maxAge: 1000 * 60 * 60 * 24 * 365, httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production' });
       return req.session.save(() => res.redirect(retour));
     });
   } catch (e) { return next(e); }
 });
-router.get('/deconnexion', (req, res) => req.session.destroy(() => res.redirect('/gestion/connexion')));
+router.get('/deconnexion', (req, res) => req.session.destroy(() => res.redirect(LOGIN_PATH)));
 
 // ---------- Tout le reste nécessite d'être connecté ----------
 router.use(requireAuth);
@@ -44,7 +49,7 @@ router.use(async (req, res, next) => {
       WHERE p.actif AND v.actif AND v.stock <= p.seuil_alerte`)).n;
     // Re-vérifie que le compte est toujours actif
     const u = await db.one('SELECT id, nom, role, actif FROM utilisateurs WHERE id=$1', [req.session.user.id]);
-    if (!u || !u.actif) return req.session.destroy(() => res.redirect('/gestion/connexion'));
+    if (!u || !u.actif) return req.session.destroy(() => res.redirect(LOGIN_PATH));
     req.session.user.role = u.role; req.session.user.nom = u.nom;
     res.locals.user = req.session.user;
     res.locals.estProprietaire = u.role === 'proprietaire';
@@ -104,3 +109,4 @@ router.use('/', require('./site'));
 router.use('/', require('./parametres'));
 
 module.exports = router;
+module.exports.login = login;

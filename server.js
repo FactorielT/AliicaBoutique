@@ -80,7 +80,11 @@ app.use((err, req, res, next) => {
   res.status(status).send(`<div style="font-family:sans-serif;padding:40px"><h2>Une erreur est survenue</h2><p>${utils.escapeHtml(err.message)}</p><p><a href="javascript:history.back()">← Retour</a></p></div>`);
 });
 
-const PORT = process.env.PORT || 3000;
+  const PORT = process.env.PORT || 3000;
+
 init()
-  .then(() => app.listen(PORT, () => console.log(`ALIICA BOUTIQUE en ligne sur ${PORT}`)));
-  .catch((e) => { console.error('Erreur au démarrage :', e); process.exit(1); });
+  .then(() => app.listen(PORT, () => console.log(`ALIICA BOUTIQUE en ligne sur ${PORT}`)))
+  .catch((e) => {
+    console.error('Erreur au démarrage :', e);
+    process.exit(1);
+  });

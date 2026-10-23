@@ -68,7 +68,10 @@ app.get('/img/:id', async (req, res, next) => {
 
 app.get('/healthz', (req, res) => res.send('ok'));
 
-app.use('/gestion', require('./routes/admin'));
+const admin = require('./routes/admin');
+const { LOGIN_PATH } = require('./src/auth');
+app.use(LOGIN_PATH, admin.login);   // seule porte d'entrée de l'application
+app.use('/gestion', admin);
 app.use('/', require('./routes/shop'));
 
 app.use((req, res) => res.status(404).render('shop/404', { titre: 'Page introuvable' }));
@@ -80,8 +83,7 @@ app.use((err, req, res, next) => {
   res.status(status).send(`<div style="font-family:sans-serif;padding:40px"><h2>Une erreur est survenue</h2><p>${utils.escapeHtml(err.message)}</p><p><a href="javascript:history.back()">← Retour</a></p></div>`);
 });
 
-  const PORT = process.env.PORT || 3000;
-
+const PORT = process.env.PORT || 3000;
 init()
   .then(() => app.listen(PORT, () => console.log(`ALIICA BOUTIQUE en ligne sur ${PORT}`)))
   .catch((e) => {

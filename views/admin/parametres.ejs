@@ -1,0 +1,50 @@
+<%- include('../partials/admin_haut') %>
+<div class="grid2">
+  <div>
+    <% if (estProprietaire) { %>
+    <div class="carte">
+      <h2>Utilisateurs</h2>
+      <div class="confid">🔒 La gérante gère ventes, prix, stocks et approvisionnements. Seule la propriétaire voit les bénéfices, marges, prix d'achat, dépenses et statistiques financières.</div>
+      <% utilisateurs.forEach(function(u){ %>
+      <form method="post" action="/gestion/parametres/utilisateurs" class="form-grid" style="border:1px solid #e7e8f0;border-radius:10px;padding:14px;margin-bottom:12px">
+        <input type="hidden" name="id" value="<%= u.id %>">
+        <div class="champ"><label class="l">Nom</label><input type="text" name="nom" value="<%= u.nom %>"></div>
+        <div class="champ"><label class="l">Identifiant</label><input type="text" name="identifiant" value="<%= u.identifiant %>"></div>
+        <div class="champ"><label class="l">Rôle</label><select name="role"><option value="gerante" <%= u.role==='gerante'?'selected':'' %>>Gérante</option><option value="proprietaire" <%= u.role==='proprietaire'?'selected':'' %>>Propriétaire</option></select></div>
+        <div class="champ"><label class="l">Nouveau mot de passe</label><input type="password" name="mot_de_passe" placeholder="Laisser vide = inchangé" autocomplete="new-password"></div>
+        <label class="case"><input type="checkbox" name="actif" value="1" <%= u.actif?'checked':'' %>> Compte actif</label>
+        <div style="text-align:right"><button class="btn petit">Enregistrer</button></div>
+      </form>
+      <% }) %>
+      <h2 style="margin-top:20px">Ajouter un utilisateur</h2>
+      <form method="post" action="/gestion/parametres/utilisateurs" class="form-grid">
+        <div class="champ"><label class="l">Nom</label><input type="text" name="nom" required></div>
+        <div class="champ"><label class="l">Identifiant</label><input type="text" name="identifiant" required></div>
+        <div class="champ"><label class="l">Rôle</label><select name="role"><option value="gerante">Gérante</option><option value="proprietaire">Propriétaire</option></select></div>
+        <div class="champ"><label class="l">Mot de passe</label><input type="password" name="mot_de_passe" required minlength="6" autocomplete="new-password"></div>
+        <div><button class="btn">Créer le compte</button></div>
+      </form>
+    </div>
+    <% } else { %>
+    <div class="carte"><h2>Mon compte</h2><p>Connectée en tant que <b><%= user.nom %></b> (gérante).</p><p class="aide">Pour ajouter un utilisateur ou modifier les accès, contactez la propriétaire.</p></div>
+    <% } %>
+  </div>
+  <div>
+    <div class="carte">
+      <h2>Changer mon mot de passe</h2>
+      <form method="post" action="/gestion/parametres/mot-de-passe">
+        <div class="champ"><label class="l">Mot de passe actuel</label><input type="password" name="actuel" required></div>
+        <div class="champ"><label class="l">Nouveau mot de passe</label><input type="password" name="nouveau" required minlength="6" autocomplete="new-password"></div>
+        <div class="champ"><label class="l">Confirmer</label><input type="password" name="confirmation" required minlength="6" autocomplete="new-password"></div>
+        <button class="btn">Modifier</button>
+      </form>
+    </div>
+    <div class="carte">
+      <h2>Raccourcis</h2>
+      <p><a class="lien" href="/gestion/categories">Catégories d'articles</a></p>
+      <p><a class="lien" href="/gestion/site/infos">Informations de la boutique (téléphone, adresse…)</a></p>
+      <p><a class="lien" href="/gestion/stock/mouvements">Historique des mouvements de stock</a></p>
+    </div>
+  </div>
+</div>
+<%- include('../partials/admin_bas') %>

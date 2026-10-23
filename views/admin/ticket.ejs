@@ -1,0 +1,23 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Ticket <%= v.numero %></title>
+<style>
+body{font-family:'Courier New',monospace;width:76mm;margin:0 auto;padding:10px;font-size:12.5px;color:#000}
+.c{text-align:center}.l{display:flex;justify-content:space-between;gap:8px}hr{border:0;border-top:1px dashed #000;margin:8px 0}
+img{width:60px;display:block;margin:0 auto 6px}.g{font-size:16px;font-weight:bold}
+@media print{.np{display:none}}
+</style></head>
+<body onload="window.print()">
+<div class="c"><img src="/static/img/logo.png" alt=""><b><%= s.nom_boutique %></b><br><%= s.adresse %><br>Tél : <%= s.telephone %></div>
+<hr>
+<div>Ticket : <%= v.numero %><br>Date : <%= dateFr(v.created_at, true) %><br>Vendeuse : <%= v.vendeur || '-' %><% if (v.client) { %><br>Client : <%= v.client %><% } %></div>
+<hr>
+<% v.lignes.forEach(function(l){ %><div><%= l.libelle %></div><div class="l"><span><%= l.quantite %> x <%= nombre(l.prix_unitaire) %></span><span><%= nombre(l.quantite*l.prix_unitaire) %></span></div><% }) %>
+<hr>
+<div class="l"><span>Sous-total</span><span><%= nombre(v.sous_total) %></span></div>
+<% if (v.remise) { %><div class="l"><span>Remise</span><span>-<%= nombre(v.remise) %></span></div><% } %>
+<div class="l g"><span>TOTAL</span><span><%= nombre(v.total) %> FCFA</span></div>
+<div class="l"><span>Paiement</span><span><%= v.mode_paiement %></span></div>
+<% if (v.montant_recu) { %><div class="l"><span>Reçu</span><span><%= nombre(v.montant_recu) %></span></div><div class="l"><span>Rendu</span><span><%= nombre(Math.max(0, v.montant_recu - v.total)) %></span></div><% } %>
+<% if (v.statut === 'annulee') { %><hr><div class="c g">*** VENTE ANNULÉE ***</div><% } %>
+<hr><div class="c">Merci pour votre achat !<br>Les articles ne sont ni repris ni échangés sans ce ticket.</div>
+<p class="c np"><button onclick="window.print()">Imprimer</button></p>
+</body></html>

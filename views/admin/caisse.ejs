@@ -1,0 +1,147 @@
+<%- include('../partials/admin_haut') %>
+<div class="caisse">
+  <div class="carte">
+    <div class="barre-outils">
+      <input type="search" id="recherche" placeholder="🔍 Rechercher un article (nom, taille, couleur…)" style="flex:1;min-width:200px" autofocus>
+      <select id="categorie"><option value="">Toutes catégories</option><% categories.forEach(function(c){ %><option value="<%= c.id %>"><%= c.nom %></option><% }) %></select>
+    </div>
+    <div class="resultats" id="resultats"><div class="vide">Chargement…</div></div>
+  </div>
+
+  <div class="carte" style="position:sticky;top:80px">
+    <h2>Vente en cours <button class="btn sec petit droite" id="vider">Vider</button></h2>
+    <div class="champ" style="position:relative">
+      <label class="l">Client</label>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="clientRecherche" placeholder="Client comptoir (facultatif)" autocomplete="off">
+        <button class="btn sec petit" id="nouveauClient" type="button" title="Nouveau client">+</button>
+      </div>
+      <div id="clientsListe" class="carte" style="display:none;position:absolute;left:0;right:0;z-index:5;padding:6px;margin-top:4px"></div>
+    </div>
+    <div class="ticket" id="ticket"><div class="vide">Cliquez sur un article pour l'ajouter.</div></div>
+    <div class="totaux">
+      <div class="r"><span>Sous-total</span><b id="sousTotal">0 FCFA</b></div>
+      <div class="r" style="align-items:center"><span>Remise (FCFA)</span><input type="number" id="remise" value="0" min="0" style="width:120px;text-align:right"></div>
+      <div class="r grand"><span>Total</span><span id="total">0 FCFA</span></div>
+    </div>
+    <div class="modes">
+      <% MODES.forEach(function(m, i){ %><label><input type="radio" name="mode" value="<%= m %>" <%= i===0?'checked':'' %>><span><%= m %></span></label><% }) %>
+    </div>
+    <div class="r" id="zoneRecu" style="display:flex;gap:10px;align-items:center;margin-bottom:12px">
+      <span style="white-space:nowrap">Montant reçu</span><input type="number" id="recu" min="0" placeholder="0">
+      <span style="white-space:nowrap">Rendu : <b id="rendu">0</b></span>
+    </div>
+    <button class="btn gros vert" id="valider" disabled>Finaliser la vente</button>
+    <div id="msg" style="margin-top:10px"></div>
+  </div>
+</div>
+
+<div class="modal" id="modalVariantes"><div class="boite"><h3 id="mvTitre"></h3><div id="mvListe" style="display:grid;gap:8px"></div><button class="btn sec" style="margin-top:14px" onclick="this.closest('.modal').classList.remove('open')">Fermer</button></div></div>
+
+<script>
+(function(){
+  var fmt = function(n){ return Math.round(n).toLocaleString('fr-FR').replace(/ /g,' ') + ' FCFA'; };
+  var esc = function(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
+  var panier = [], client = null, resultats = [];
+  var $ = function(id){ return document.getElementById(id); };
+
+  function charger(){
+    fetch('/gestion/api/variantes?q=' + encodeURIComponent($('recherche').value) + '&categorie=' + $('categorie').value)
+      .then(function(r){ return r.json(); }).then(function(rows){
+        resultats = rows;
+        // regroupe par produit
+        var prods = {}; rows.forEach(function(v){ (prods[v.produit_id] = prods[v.produit_id] || []).push(v); });
+        var ids = Object.keys(prods);
+        if (!ids.length) { $('resultats').innerHTML = '<div class="vide">Aucun article trouvé.</div>'; return; }
+        $('resultats').innerHTML = ids.map(function(id){
+          var vs = prods[id], v = vs[0], stock = vs.reduce(function(a,x){ return a + x.stock; }, 0);
+          return '<button class="tuile ' + (stock <= 0 ? 'vide-stock' : '') + '" data-p="' + id + '">' +
+            '<img src="' + (v.image_id ? '/img/' + v.image_id : '/static/img/placeholder.svg') + '" alt="">' +
+            '<b>' + esc(v.nom) + '</b><small>' + esc(v.categorie || '') + ' · stock ' + stock + '</small><div class="px">' + fmt(v.prix) + '</div></button>';
+        }).join('');
+        $('resultats').querySelectorAll('.tuile').forEach(function(t){
+          t.onclick = function(){
+            var vs = prods[t.dataset.p];
+            if (vs.length === 1) return ajouter(vs[0]);
+            $('mvTitre').textContent = vs[0].nom;
+            $('mvListe').innerHTML = vs.map(function(v){
+              return '<button class="btn ' + (v.stock > 0 ? 'sec' : 'sec') + '" ' + (v.stock <= 0 ? 'disabled' : '') + ' data-v="' + v.id + '" style="justify-content:space-between">' +
+                esc([v.taille, v.couleur].filter(Boolean).join(' / ') || 'Unique') + '<span>stock ' + v.stock + '</span></button>';
+            }).join('');
+            $('mvListe').querySelectorAll('[data-v]').forEach(function(b){
+              b.onclick = function(){ ajouter(vs.find(function(x){ return x.id == b.dataset.v; })); $('modalVariantes').classList.remove('open'); };
+            });
+            $('modalVariantes').classList.add('open');
+          };
+        });
+      });
+  }
+  function ajouter(v){
+    var l = panier.find(function(x){ return x.id === v.id; });
+    if (l) { if (l.q < v.stock) l.q++; else return flash('Stock insuffisant (' + v.stock + ' dispo).', true); }
+    else { if (v.stock <= 0) return flash('Article en rupture.', true); panier.push({ id: v.id, nom: v.nom, det: [v.taille, v.couleur].filter(Boolean).join(' / '), prix: v.prix, q: 1, stock: v.stock }); }
+    rendu();
+  }
+  function flash(m, err){ $('msg').innerHTML = '<div class="alerte ' + (err ? 'erreur' : 'ok') + '">' + m + '</div>'; setTimeout(function(){ $('msg').innerHTML = ''; }, 4000); }
+  function rendu(){
+    if (!panier.length) $('ticket').innerHTML = '<div class="vide">Cliquez sur un article pour l\'ajouter.</div>';
+    else $('ticket').innerHTML = panier.map(function(l, i){
+      return '<div class="ln"><div><b>' + esc(l.nom) + '</b><br><small style="color:#6e7387">' + esc(l.det) + '</small></div>' +
+        '<input type="number" min="0" value="' + l.prix + '" data-prix="' + i + '" title="Prix unitaire">' +
+        '<input type="number" min="1" max="' + l.stock + '" value="' + l.q + '" data-q="' + i + '" title="Quantité">' +
+        '<button class="x" data-del="' + i + '">×</button></div>';
+    }).join('');
+    $('ticket').querySelectorAll('[data-q]').forEach(function(inp){ inp.onchange = function(){ var l = panier[inp.dataset.q]; l.q = Math.max(1, Math.min(l.stock, parseInt(inp.value,10) || 1)); rendu(); }; });
+    $('ticket').querySelectorAll('[data-prix]').forEach(function(inp){ inp.onchange = function(){ panier[inp.dataset.prix].prix = Math.max(0, parseInt(inp.value,10) || 0); rendu(); }; });
+    $('ticket').querySelectorAll('[data-del]').forEach(function(b){ b.onclick = function(){ panier.splice(b.dataset.del, 1); rendu(); }; });
+    totaux();
+  }
+  function totaux(){
+    var st = panier.reduce(function(a,l){ return a + l.prix * l.q; }, 0);
+    var rem = Math.min(st, Math.max(0, parseInt($('remise').value,10) || 0));
+    $('sousTotal').textContent = fmt(st); $('total').textContent = fmt(st - rem);
+    var recu = parseInt($('recu').value,10) || 0; $('rendu').textContent = recu ? fmt(Math.max(0, recu - (st - rem))) : '0';
+    $('valider').disabled = !panier.length;
+  }
+  var t; $('recherche').oninput = function(){ clearTimeout(t); t = setTimeout(charger, 250); };
+  $('categorie').onchange = charger; $('remise').oninput = totaux; $('recu').oninput = totaux;
+  $('vider').onclick = function(){ panier = []; rendu(); };
+  document.querySelectorAll('input[name=mode]').forEach(function(r){ r.onchange = function(){ $('zoneRecu').style.display = r.value === 'Espèces' ? 'flex' : 'none'; }; });
+
+  // Client
+  var tc;
+  $('clientRecherche').oninput = function(){
+    client = null; clearTimeout(tc);
+    var q = this.value.trim(); if (!q) { $('clientsListe').style.display = 'none'; return; }
+    tc = setTimeout(function(){
+      fetch('/gestion/api/clients?q=' + encodeURIComponent(q)).then(function(r){ return r.json(); }).then(function(rows){
+        $('clientsListe').style.display = 'block';
+        $('clientsListe').innerHTML = rows.length ? rows.map(function(c){ return '<a href="#" data-c=\'' + JSON.stringify(c).replace(/'/g,'&#39;') + '\' style="display:block;padding:8px">' + esc(c.nom) + ' <small style="color:#6e7387">' + esc(c.telephone || '') + '</small></a>'; }).join('') : '<div style="padding:8px;color:#6e7387">Aucun client — cliquez sur + pour le créer</div>';
+        $('clientsListe').querySelectorAll('[data-c]').forEach(function(a){ a.onclick = function(e){ e.preventDefault(); client = JSON.parse(a.dataset.c); $('clientRecherche').value = client.nom; $('clientsListe').style.display = 'none'; }; });
+      });
+    }, 250);
+  };
+  $('nouveauClient').onclick = function(){
+    var nom = prompt('Nom du client :', $('clientRecherche').value); if (!nom) return;
+    var tel = prompt('Téléphone (facultatif) :', '') || '';
+    fetch('/gestion/api/clients', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nom: nom, telephone: tel }) })
+      .then(function(r){ return r.json(); }).then(function(c){ client = c; $('clientRecherche').value = c.nom; $('clientsListe').style.display = 'none'; });
+  };
+
+  $('valider').onclick = function(){
+    var b = this; b.disabled = true; b.textContent = 'Enregistrement…';
+    fetch('/gestion/api/ventes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+      lignes: panier.map(function(l){ return { variante_id: l.id, quantite: l.q, prix: l.prix }; }),
+      client_id: client ? client.id : null, remise: $('remise').value,
+      mode_paiement: document.querySelector('input[name=mode]:checked').value, montant_recu: $('recu').value
+    }) }).then(function(r){ return r.json(); }).then(function(r){
+      b.textContent = 'Finaliser la vente';
+      if (r.error) { b.disabled = false; return flash(r.error, true); }
+      flash('Vente ' + r.numero + ' enregistrée ✔ <a class="lien" target="_blank" href="/gestion/ventes/' + r.id + '/ticket">Imprimer le ticket</a>');
+      panier = []; client = null; $('clientRecherche').value = ''; $('remise').value = 0; $('recu').value = ''; rendu(); charger();
+    }).catch(function(){ b.disabled = false; b.textContent = 'Finaliser la vente'; flash('Erreur réseau', true); });
+  };
+  charger();
+})();
+</script>
+<%- include('../partials/admin_bas') %>

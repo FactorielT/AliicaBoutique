@@ -1,0 +1,29 @@
+<%- include('../partials/admin_haut') %>
+<div class="barre-outils"><a class="btn sec" href="/gestion/site">← Mon site web</a></div>
+<div class="grid2">
+  <div class="carte">
+    <h2>Codes promo</h2>
+    <table class="t"><tr><th>Code</th><th>Réduction</th><th>Conditions</th><th class="n">Utilisé</th><th>Actif</th><th></th></tr>
+      <% promos.forEach(function(p){ %>
+      <tr><td><b style="font-family:monospace;font-size:15px"><%= p.code %></b></td><td>-<%= p.pourcentage %> %</td>
+        <td><small><%= p.premiere_commande ? '1ère commande uniquement' : 'Toutes commandes' %><%= p.date_fin ? ' · jusqu\'au ' + dateFr(p.date_fin) : '' %></small></td>
+        <td class="n"><%= p.utilisations %></td>
+        <td><label class="interrupteur"><input type="checkbox" data-toggle-url="/gestion/api/site/promos/<%= p.id %>/actif" <%= p.actif?'checked':'' %>><span></span></label></td>
+        <td><form method="post" action="/gestion/site/promos/<%= p.id %>/supprimer" data-confirm="Supprimer ce code ?"><button class="btn sec petit">×</button></form></td></tr>
+      <% }) %>
+    </table>
+    <% if (!promos.length) { %><div class="vide">Aucun code promo.</div><% } %>
+  </div>
+  <div class="carte">
+    <h2>Créer un code</h2>
+    <form method="post" action="/gestion/site/promos">
+      <div class="champ"><label class="l">Code</label><input type="text" name="code" required placeholder="TABASKI2026" style="text-transform:uppercase"></div>
+      <div class="champ"><label class="l">Réduction (%)</label><input type="number" name="pourcentage" min="1" max="90" required value="10"></div>
+      <div class="champ"><label class="l">Valable jusqu'au (facultatif)</label><input type="date" name="date_fin"></div>
+      <label class="case"><input type="checkbox" name="premiere_commande" value="1"> Réservé à la première commande d'un client</label>
+      <button class="btn">Créer le code</button>
+    </form>
+    <p class="aide" style="margin-top:16px">Pensez à annoncer le code dans le bandeau du haut (Apparence & infos) ou la section « Offre spéciale ».</p>
+  </div>
+</div>
+<%- include('../partials/admin_bas') %>

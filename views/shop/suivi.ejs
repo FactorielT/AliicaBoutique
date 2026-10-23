@@ -1,0 +1,22 @@
+<%- include('../partials/shop_haut') %>
+<%
+  var libs = { nouvelle: 'Reçue – en attente de confirmation', confirmee: 'Confirmée – en préparation / livraison', livree: 'Livrée', annulee: 'Annulée' };
+%>
+<div class="wrap" style="max-width:760px;padding-bottom:90px">
+  <div class="entete-page"><div class="fil"><a href="/">Accueil</a> / <b>Suivi de commande</b></div><h1>Suivre ma commande</h1></div>
+  <form class="form-grid" method="get">
+    <div class="champ"><label>Numéro de commande</label><input name="numero" required value="<%= q.numero || '' %>" placeholder="CMD…"></div>
+    <div class="champ"><label>Téléphone</label><input name="telephone" required value="<%= q.telephone || '' %>"></div>
+    <div class="plein"><button class="btn">Rechercher</button></div>
+  </form>
+  <% if (cherche && !cmd) { %><div class="alerte erreur" style="margin-top:30px">Aucune commande trouvée avec ces informations.</div><% } %>
+  <% if (cmd) { %>
+  <div class="recap" style="margin-top:30px;position:static">
+    <h3>COMMANDE <%= cmd.numero %></h3>
+    <p>Passée le <%= dateFr(cmd.created_at, true) %> — <span class="statut"><%= libs[cmd.statut] %></span></p>
+    <% lignes.forEach(function(l){ %><div class="l"><span><%= l.quantite %> × <%= l.libelle %></span><span><%= fcfa(l.quantite*l.prix_unitaire) %></span></div><% }) %>
+    <div class="l t"><span>Total</span><span><%= fcfa(cmd.total) %></span></div>
+  </div>
+  <% } %>
+</div>
+<%- include('../partials/shop_bas') %>

@@ -1,0 +1,20 @@
+<%- include('../partials/shop_haut') %>
+<div class="wrap" style="max-width:760px;padding:60px 24px 90px;text-align:center">
+  <svg width="70" height="70" viewBox="0 0 70 70"><circle cx="35" cy="35" r="33" fill="none" stroke="#000" stroke-width="2"/><path d="M22 36l9 9 18-19" fill="none" stroke="#000" stroke-width="3"/></svg>
+  <h1 style="font-weight:400;letter-spacing:.06em">Merci <%= cmd.nom.split(' ')[0] %> !</h1>
+  <p>Votre commande <b><%= cmd.numero %></b> a bien été enregistrée.<br>Nous vous appelons très vite au <b><%= cmd.telephone %></b> pour confirmer la livraison.</p>
+  <div class="recap" style="text-align:left;margin:34px 0;position:static">
+    <% lignes.forEach(function(l){ %><div class="l"><span><%= l.quantite %> × <%= l.libelle %></span><span><%= fcfa(l.quantite * l.prix_unitaire) %></span></div><% }) %>
+    <% if (cmd.remise) { %><div class="l" style="color:#2e7d32"><span>Remise (<%= cmd.code_promo %>)</span><span>− <%= fcfa(cmd.remise) %></span></div><% } %>
+    <% if (cmd.frais_livraison) { %><div class="l"><span>Livraison</span><span><%= fcfa(cmd.frais_livraison) %></span></div><% } %>
+    <div class="l t"><span>Total</span><span><%= fcfa(cmd.total) %></span></div>
+    <div class="l" style="font-size:14px"><span>Paiement</span><span><%= cmd.mode_paiement %></span></div>
+  </div>
+  <% if (s.whatsapp) {
+    var msg = 'Bonjour ALIICA, je viens de passer la commande ' + cmd.numero + ' (' + fcfa(cmd.total) + ').';
+  %>
+  <a class="btn wa" target="_blank" rel="noopener" href="https://wa.me/<%= s.whatsapp.replace(/\D/g,'') %>?text=<%= encodeURIComponent(msg) %>">Confirmer sur WhatsApp</a>
+  <% } %>
+  <a class="btn ligne" href="/boutique">Continuer mes achats</a>
+</div>
+<%- include('../partials/shop_bas') %>

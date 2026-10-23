@@ -1,0 +1,73 @@
+<%- include('../partials/admin_haut') %>
+<%
+  var pct = function(a, b){ if (!b) return a ? '+100%' : '0%'; var p = Math.round((a - b) / b * 100); return (p >= 0 ? '+' : '') + p + '%'; };
+  var moisFr = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'];
+%>
+<div class="kpis">
+  <div class="kpi k-vert"><div class="ic"><%- icon('argent') %></div><div><small>Ventes du jour</small><b><%= nombre(k.jour) %> FCFA</b><span class="var"><%= pct(k.jour, k.hier) %> vs hier · <%= k.nb_jour %> vente(s)</span></div></div>
+  <div class="kpi k-bleu"><div class="ic"><%- icon('tendance') %></div><div><small>Ventes du mois</small><b><%= nombre(k.mois) %> FCFA</b><span class="var"><%= pct(k.mois, k.mois_prec_meme_periode) %> vs mois dernier</span></div></div>
+  <div class="kpi k-violet"><div class="ic"><%- icon('ventes') %></div><div><small>Nombre de ventes (mois)</small><b><%= k.nb_mois %></b><span class="var"><%= pct(k.nb_mois, k.nb_mois_prec) %> vs mois dernier</span></div></div>
+  <div class="kpi k-orange"><div class="ic"><%- icon('stock') %></div><div><small>Pièces en stock</small><b><%= nombre(st.pieces) %></b><span class="var"><%= nbAlertes %> alerte(s) de stock</span></div></div>
+</div>
+
+<% if (fin) { %>
+<div class="kpis" style="grid-template-columns:repeat(3,1fr)">
+  <div class="kpi k-sombre"><div class="ic"><%- icon('cadenas') %></div><div><small>Marge brute du mois</small><b><%= nombre(fin.marge) %> FCFA</b><span class="var">Visible uniquement par vous</span></div></div>
+  <div class="kpi k-rouge"><div class="ic"><%- icon('depenses') %></div><div><small>Dépenses du mois</small><b><%= nombre(fin.depenses) %> FCFA</b><span class="var"><a href="/gestion/depenses" style="text-decoration:underline">Gérer les dépenses</a></span></div></div>
+  <div class="kpi <%= fin.benefice >= 0 ? 'k-vert' : 'k-rouge' %>"><div class="ic"><%- icon('tendance') %></div><div><small>Bénéfice net du mois</small><b><%= nombre(fin.benefice) %> FCFA</b><span class="var">Marge − dépenses</span></div></div>
+</div>
+<% } %>
+
+<div class="grid2">
+  <div class="carte">
+    <h2>Évolution des ventes <small>(12 derniers mois)</small></h2>
+    <div style="height:280px"><canvas id="graphVentes"></canvas></div>
+  </div>
+  <div class="carte">
+    <h2>Stock et alertes <a class="droite lien" style="font-size:13px" href="/gestion/stock?filtre=alerte">Tout voir</a></h2>
+    <div class="liste-alertes">
+      <% if (!alertes.length) { %><div class="vide">Aucune alerte, tout est en stock ✔</div><% } %>
+      <% alertes.forEach(function(a){ %>
+      <div class="it"><img src="<%= imgUrl(a.image_id) %>" alt=""><div><b><%= a.nom %></b><br><small><%= [a.taille, a.couleur].filter(Boolean).join(' / ') || 'Taille unique' %> · Stock : <%= a.stock %></small></div>
+        <span class="tag <%= a.stock <= 0 ? 'rupture' : 'faible' %>"><%= a.stock <= 0 ? 'Rupture' : 'Bientôt épuisé' %></span></div>
+      <% }) %>
+    </div>
+  </div>
+</div>
+
+<div class="grid3">
+  <div class="carte">
+    <h2>État du stock</h2>
+    <% var p = st.total ? Math.round(st.en_stock / st.total * 100) : 0; %>
+    <div style="display:flex;gap:20px;align-items:center">
+      <div class="anneau" style="background:conic-gradient(var(--vert) <%= p %>%, #eceef5 0)"><b><%= p %>%</b></div>
+      <div><b style="font-size:20px"><%= st.en_stock %></b> / <%= st.total %> articles<br><span style="color:var(--vert)">en stock</span><br><br><a href="/gestion/stock" class="lien">Gérer le stock →</a></div>
+    </div>
+  </div>
+  <div class="carte">
+    <h2>Top 5 articles vendus <small>(ce mois)</small></h2>
+    <% if (!top.length) { %><div class="vide">Pas encore de ventes ce mois-ci.</div><% } %>
+    <table class="t"><% top.forEach(function(t, i){ %><tr><td><%= i+1 %>. <%= t.libelle %></td><td class="n"><b><%= t.qte %></b></td></tr><% }) %></table>
+  </div>
+  <div class="carte">
+    <h2>Dernières ventes <a class="droite lien" style="font-size:13px" href="/gestion/ventes">Tout voir</a></h2>
+    <% if (!dernieres.length) { %><div class="vide">Aucune vente enregistrée.</div><% } %>
+    <table class="t"><% dernieres.forEach(function(v){ %><tr><td><a href="/gestion/ventes/<%= v.id %>"><%= dateFr(v.created_at, true) %></a><br><small style="color:#6e7387"><%= v.client || (v.source === 'site' ? 'Site web' : 'Client comptoir') %></small></td><td class="n"><b><%= fcfa(v.total) %></b></td></tr><% }) %></table>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" integrity="sha384-bs/nf9FbdNouRbMiFcrcZfLXYPKiPaGVGplVbv7dLGECccEXDW+S3zjqSKR5ZEaD" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+  (function(){
+    var mois = <%- JSON.stringify(graph.map(function(g){ return moisFr[Number(g.mois.slice(5)) - 1]; })) %>;
+    var vals = <%- JSON.stringify(graph.map(function(g){ return g.total; })) %>;
+    if (!window.Chart) return;
+    new Chart(document.getElementById('graphVentes'), {
+      type: 'bar',
+      data: { labels: mois, datasets: [{ data: vals, backgroundColor: '#5b4ee8', borderRadius: 6, maxBarThickness: 34 }] },
+      options: { maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(c){ return c.parsed.y.toLocaleString('fr-FR') + ' FCFA'; } } } },
+        scales: { y: { ticks: { callback: function(v){ return v >= 1e6 ? (v/1e6) + 'M' : v >= 1e3 ? (v/1e3) + 'k' : v; } }, grid: { color: '#f0f1f6' } }, x: { grid: { display: false } } } }
+    });
+  })();
+</script>
+<%- include('../partials/admin_bas') %>

@@ -1,0 +1,45 @@
+<%- include('../partials/admin_haut') %>
+<% var c = sec.config || {}; %>
+<div class="barre-outils"><a class="btn sec" href="/gestion/site/sections">← Sections</a></div>
+<form method="post" enctype="multipart/form-data" class="carte" style="max-width:780px">
+  <input type="hidden" name="type" value="<%= sec.type %>">
+  <% if (sec.type === 'onglets') { %>
+    <div class="champ"><label class="l">Nom interne (pour vous repérer)</label><input type="text" name="titre" value="<%= sec.titre || '' %>" placeholder="Ex : Hommes"></div>
+    <div class="champ"><label class="l">Onglets à afficher (une catégorie = un onglet)</label>
+      <% categories.forEach(function(cat){ %><label class="case"><input type="checkbox" name="categories" value="<%= cat.id %>" <%= (c.categories||[]).map(Number).includes(cat.id)?'checked':'' %>> <%= cat.nom %></label><% }) %>
+    </div>
+    <div class="champ"><label class="l">Nombre d'articles par onglet</label><input type="number" name="nombre" min="1" max="20" value="<%= c.nombre || 5 %>" style="width:120px"></div>
+    <p class="aide">Les articles « mis en avant » apparaissent en premier, puis les plus récents.</p>
+  <% } else if (sec.type === 'banniere') { %>
+    <div class="form-grid">
+      <div class="champ"><label class="l">Petit texte</label><input type="text" name="surtitre" value="<%= c.surtitre || '' %>"></div>
+      <div class="champ"><label class="l">Grand titre</label><input type="text" name="titre_banniere" value="<%= c.titre || '' %>" required></div>
+      <div class="champ"><label class="l">Texte du bouton</label><input type="text" name="bouton_texte" value="<%= c.bouton_texte || '' %>"></div>
+      <div class="champ"><label class="l">Lien du bouton</label><input type="text" name="lien" value="<%= c.lien || '/boutique' %>"><div class="aide">Ex : /boutique, /hommes, /categorie/chemise</div></div>
+      <div class="champ"><label class="l">Couleur de fond</label><input type="color" name="couleur_fond" value="<%= c.couleur_fond || '#e1e6e4' %>" style="width:80px;height:42px;padding:3px"></div>
+    </div>
+    <div class="g2">
+      <% ['image_gauche','image_droite'].forEach(function(k){ %>
+      <div class="champ"><label class="l">Photo <%= k === 'image_gauche' ? 'de gauche' : 'de droite' %></label>
+        <div class="zone-image"><img id="ap_<%= k %>" src="<%= c[k] ? '/img/' + c[k] : '' %>" style="<%= c[k] ? '' : 'display:none' %>" alt=""><b>📷 Choisir</b>
+          <input type="file" name="<%= k %>" accept="image/*" data-apercu="ap_<%= k %>"></div>
+        <% if (c[k]) { %><label class="case" style="margin-top:6px"><input type="checkbox" name="suppr_<%= k %>" value="1"> Retirer cette photo</label><% } %>
+      </div>
+      <% }) %>
+    </div>
+  <% } else if (sec.type === 'offre') { %>
+    <div class="champ"><label class="l">Titre</label><input type="text" name="titre_offre" value="<%= c.titre || 'OFFRE SPÉCIALE' %>"></div>
+    <div class="champ"><label class="l">Texte (retour à la ligne autorisé)</label><textarea name="texte" rows="3"><%= c.texte || '' %></textarea></div>
+    <div class="form-grid">
+      <div class="champ"><label class="l">Texte du lien</label><input type="text" name="bouton_texte" value="<%= c.bouton_texte || 'faites un achat' %>"></div>
+      <div class="champ"><label class="l">Lien</label><input type="text" name="lien" value="<%= c.lien || '/boutique' %>"></div>
+    </div>
+  <% } else { %>
+    <div class="champ"><label class="l">Titre</label><input type="text" name="titre" value="<%= sec.titre || '' %>"></div>
+    <div class="champ"><label class="l">Texte</label><textarea name="texte" rows="8"><%= c.texte || '' %></textarea>
+      <div class="aide">Astuces : laissez une ligne vide entre deux paragraphes · <b>**texte**</b> pour mettre en gras · commencez les lignes par « - » pour une liste.</div></div>
+  <% } %>
+  <label class="case"><input type="checkbox" name="actif" value="1" <%= sec.actif ? 'checked' : '' %>> Afficher sur le site</label>
+  <button class="btn gros">Enregistrer</button>
+</form>
+<%- include('../partials/admin_bas') %>

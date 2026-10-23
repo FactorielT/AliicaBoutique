@@ -1,0 +1,55 @@
+<%- include('../partials/admin_haut') %>
+<% var libs = { nouvelle: ['Nouvelle','rupture'], confirmee: ['Confirmée','info'], livree: ['Livrée','ok'], annulee: ['Annulée','gris'] };
+   var tel = k.telephone.replace(/\D/g,''); if (tel.length <= 10) tel = '225' + tel;
+   var msg = 'Bonjour ' + k.nom + ', ici ALIICA BOUTIQUE. Nous avons bien reçu votre commande ' + k.numero + ' (' + fcfa(k.total) + '). '; %>
+<div class="barre-outils">
+  <a class="btn sec" href="/gestion/commandes">← Commandes</a>
+  <div class="droite">
+    <a class="btn vert" target="_blank" href="https://wa.me/<%= tel %>?text=<%= encodeURIComponent(msg) %>">WhatsApp client</a>
+    <a class="btn sec" href="tel:<%= k.telephone %>">Appeler</a>
+  </div>
+</div>
+<div class="grid2">
+  <div class="carte">
+    <h2>Articles commandés</h2>
+    <table class="t"><tr><th>Article</th><th class="n">Qté</th><th class="n">P.U.</th><th class="n">Total</th><% if (k.statut==='nouvelle') { %><th class="n">Stock</th><% } %></tr>
+      <% k.lignes.forEach(function(l){ %><tr><td><%= l.libelle %></td><td class="n"><%= l.quantite %></td><td class="n"><%= fcfa(l.prix_unitaire) %></td><td class="n"><%= fcfa(l.quantite*l.prix_unitaire) %></td>
+      <% if (k.statut==='nouvelle') { %><td class="n"><span class="tag <%= l.stock >= l.quantite ? 'ok' : 'rupture' %>"><%= l.stock == null ? '—' : l.stock %></span></td><% } %></tr><% }) %>
+      <tr><td colspan="3" class="n">Sous-total</td><td class="n"><%= fcfa(k.sous_total) %></td></tr>
+      <% if (k.remise) { %><tr><td colspan="3" class="n">Remise (<%= k.code_promo %>)</td><td class="n">− <%= fcfa(k.remise) %></td></tr><% } %>
+      <% if (k.frais_livraison) { %><tr><td colspan="3" class="n">Livraison</td><td class="n"><%= fcfa(k.frais_livraison) %></td></tr><% } %>
+      <tr><td colspan="3" class="n"><b>Total</b></td><td class="n"><b><%= fcfa(k.total) %></b></td></tr>
+    </table>
+    <% if (k.vente_id) { %><p style="margin-top:14px">Vente associée : <a class="lien" href="/gestion/ventes/<%= k.vente_id %>">voir la vente</a></p><% } %>
+  </div>
+  <div>
+    <div class="carte">
+      <h2>Client & livraison <span class="tag <%= libs[k.statut][1] %> droite"><%= libs[k.statut][0] %></span></h2>
+      <p><b><%= k.nom %></b><br><%= k.telephone %><% if (k.email) { %><br><%= k.email %><% } %></p>
+      <p><b>Adresse :</b> <%= k.adresse %><%= k.ville ? ', ' + k.ville : '' %></p>
+      <% if (k.notes) { %><p><b>Note :</b> <%= k.notes %></p><% } %>
+      <p><b>Paiement :</b> <%= k.mode_paiement %></p>
+      <p><b>Reçue le :</b> <%= dateFr(k.created_at, true) %></p>
+    </div>
+    <div class="carte">
+      <h2>Traiter la commande</h2>
+      <form method="post" action="/gestion/commandes/<%= k.id %>/statut" style="display:grid;gap:10px">
+        <% if (k.statut === 'nouvelle') { %>
+          <button class="btn vert gros" name="statut" value="confirmee">✔ Confirmer (enregistre la vente et sort le stock)</button>
+          <button class="btn rouge" name="statut" value="annulee" onclick="return confirm('Annuler cette commande ?')">Annuler la commande</button>
+        <% } else if (k.statut === 'confirmee') { %>
+          <button class="btn vert gros" name="statut" value="livree">🚚 Marquer comme livrée</button>
+          <button class="btn sec" name="statut" value="nouvelle" onclick="return confirm('Remettre en attente ? La vente sera annulée et le stock restitué.')">Remettre en attente</button>
+          <button class="btn rouge" name="statut" value="annulee" onclick="return confirm('Annuler ? La vente sera annulée et le stock restitué.')">Annuler la commande</button>
+        <% } else if (k.statut === 'livree') { %>
+          <div class="alerte ok">Commande livrée ✔</div>
+          <button class="btn rouge" name="statut" value="annulee" onclick="return confirm('Annuler (retour) ? La vente sera annulée et le stock restitué.')">Annuler / retour client</button>
+        <% } else { %>
+          <div class="alerte info">Commande annulée.</div>
+          <button class="btn sec" name="statut" value="nouvelle">Réactiver la commande</button>
+        <% } %>
+      </form>
+    </div>
+  </div>
+</div>
+<%- include('../partials/admin_bas') %>

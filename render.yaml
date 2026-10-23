@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: aliica-boutique
+    runtime: node
+    plan: free
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: TZ
+        value: Africa/Abidjan
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: aliica-db
+          property: connectionString
+databases:
+  - name: aliica-db
+    plan: free
+    databaseName: aliica

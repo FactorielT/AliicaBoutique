@@ -1,0 +1,35 @@
+<%- include('../partials/admin_haut') %>
+<div class="barre-outils"><a class="btn sec" href="/gestion/site/diaporama">← Diaporama</a></div>
+<form method="post" enctype="multipart/form-data" class="grid2">
+  <div class="carte">
+    <h2>Contenu</h2>
+    <div class="champ"><label class="l">Photo</label>
+      <div class="zone-image"><img id="imgApercuZone" src="<%= sl.image_id ? '/img/' + sl.image_id : '' %>" style="<%= sl.image_id ? '' : 'display:none' %>" alt="">
+        <b>📷 <%= sl.image_id ? 'Changer la photo' : 'Choisir une photo' %></b><div class="aide">Idéalement une photo détourée (fond transparent PNG) ou sur fond uni</div>
+        <input type="file" name="image" accept="image/*" data-apercu="imgApercuZone,apImg"></div></div>
+    <div class="champ"><label class="l">Petit texte au-dessus</label><input type="text" name="surtitre" value="<%= sl.surtitre || '' %>" placeholder="COLLECTION ALIICA 2025" data-live="apSur"></div>
+    <div class="champ"><label class="l">Grand titre</label><input type="text" name="titre" value="<%= sl.titre || '' %>" placeholder="Élégance et modernité" data-live="apTitre"></div>
+    <div class="form-grid">
+      <div class="champ"><label class="l">Texte du bouton</label><input type="text" name="bouton_texte" value="<%= sl.bouton_texte || '' %>" data-live="apBtn"></div>
+      <div class="champ"><label class="l">Le bouton mène vers</label>
+        <select name="lien">
+          <option value="/boutique">Toute la boutique</option>
+          <option value="/hommes" <%= sl.lien==='/hommes'?'selected':'' %>>Rayon Hommes</option>
+          <option value="/femmes" <%= sl.lien==='/femmes'?'selected':'' %>>Rayon Femmes</option>
+          <% categories.forEach(function(c){ %><option value="/categorie/<%= c.slug %>" <%= sl.lien==='/categorie/'+c.slug?'selected':'' %>><%= c.nom %></option><% }) %>
+          <option value="/boutique?promo=1" <%= sl.lien==='/boutique?promo=1'?'selected':'' %>>Articles en promo</option>
+        </select></div>
+    </div>
+    <div class="champ"><label class="l">Couleur de fond</label><input type="color" name="couleur_fond" value="<%= sl.couleur_fond %>" data-live-bg="apercuSlide" style="width:80px;height:42px;padding:3px"></div>
+    <label class="case"><input type="checkbox" name="actif" value="1" <%= sl.actif ? 'checked' : '' %>> Afficher sur le site</label>
+    <button class="btn gros">Enregistrer</button>
+  </div>
+  <div class="carte">
+    <h2>Aperçu</h2>
+    <div class="apercu" id="apercuSlide" style="background:<%= sl.couleur_fond %>">
+      <div class="tx"><small id="apSur"><%= sl.surtitre %></small><h3 id="apTitre"><%= sl.titre || 'Votre titre' %></h3><span id="apBtn"><%= sl.bouton_texte %></span></div>
+      <div><img id="apImg" src="<%= sl.image_id ? '/img/' + sl.image_id : '' %>" alt=""></div>
+    </div>
+  </div>
+</form>
+<%- include('../partials/admin_bas') %>

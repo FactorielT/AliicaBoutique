@@ -1,0 +1,20 @@
+<%- include('../partials/admin_haut') %>
+<% var libs = { nouvelle: ['Nouvelle','rupture'], confirmee: ['Confirmée','info'], livree: ['Livrée','ok'], annulee: ['Annulée','gris'] };
+   var n = function(s){ var c = compte.find(function(x){ return x.statut === s; }); return c ? c.n : 0; }; %>
+<div class="barre-outils">
+  <div class="chips">
+    <a href="/gestion/commandes" class="<%= !statut?'actif':'' %>">Toutes</a>
+    <% Object.keys(libs).forEach(function(s){ %><a href="?statut=<%= s %>" class="<%= statut===s?'actif':'' %>"><%= libs[s][0] %> (<%= n(s) %>)</a><% }) %>
+  </div>
+</div>
+<div class="carte"><div class="table-scroll"><table class="t">
+  <tr><th>Date</th><th>N°</th><th>Client</th><th>Téléphone</th><th>Commune</th><th class="n">Articles</th><th class="n">Total</th><th>Paiement</th><th>Statut</th></tr>
+  <% commandes.forEach(function(k){ %>
+  <tr onclick="location='/gestion/commandes/<%= k.id %>'" style="cursor:pointer;<%= k.statut==='nouvelle'?'font-weight:600':'' %>">
+    <td><%= dateFr(k.created_at, true) %></td><td><%= k.numero %></td><td><%= k.nom %></td><td><%= k.telephone %></td><td><%= k.ville || '—' %></td>
+    <td class="n"><%= k.articles %></td><td class="n"><%= fcfa(k.total) %></td><td><%= k.mode_paiement %></td>
+    <td><span class="tag <%= libs[k.statut][1] %>"><%= libs[k.statut][0] %></span></td>
+  </tr>
+  <% }) %>
+</table></div><% if (!commandes.length) { %><div class="vide">Aucune commande.</div><% } %></div>
+<%- include('../partials/admin_bas') %>

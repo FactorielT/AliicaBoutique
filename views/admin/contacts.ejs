@@ -1,0 +1,18 @@
+<%- include('../partials/admin_haut') %>
+<form class="barre-outils" method="get">
+  <input type="search" name="q" value="<%= q %>" placeholder="🔍 Nom, téléphone…">
+  <% if (cle === 'fournisseurs') { %><div class="chips"><a href="/gestion/achats">Achats</a><a href="/gestion/fournisseurs" class="actif">Fournisseurs</a></div><% } %>
+  <div class="droite"><a class="btn" href="/gestion/<%= cle %>/nouveau"><%- icon('plus') %> Ajouter un <%= T.un %></a></div>
+</form>
+<div class="carte"><div class="table-scroll"><table class="t">
+  <tr><th>Nom</th><% if (cle==='fournisseurs') { %><th>Contact</th><th>Ville</th><% } %><th>Téléphone</th><th class="n"><%= cle==='clients'?'Achats':'Commandes' %></th><th class="n">Montant total</th><th>Dernier</th><th>Statut</th></tr>
+  <% lignes.forEach(function(c){ %>
+  <tr onclick="location='/gestion/<%= cle %>/<%= c.id %>'" style="cursor:pointer">
+    <td><b><%= c.nom %></b></td><% if (cle==='fournisseurs') { %><td><%= c.contact || '—' %></td><td><%= c.ville || '—' %></td><% } %>
+    <td><%= c.telephone || '—' %></td><td class="n"><%= c.nb %></td><td class="n"><%= fcfa(c.montant) %></td>
+    <td><%= c.dernier ? dateFr(c.dernier) : '—' %></td>
+    <td><% if (c.dernier && (Date.now() - new Date(c.dernier)) < 90*864e5) { %><span class="tag ok">Actif</span><% } else { %><span class="tag gris">Inactif</span><% } %></td>
+  </tr>
+  <% }) %>
+</table></div><% if (!lignes.length) { %><div class="vide">Aucun <%= T.un %> enregistré.</div><% } %></div>
+<%- include('../partials/admin_bas') %>

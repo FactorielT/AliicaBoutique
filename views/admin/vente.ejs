@@ -1,0 +1,36 @@
+<%- include('../partials/admin_haut') %>
+<div class="barre-outils">
+  <a class="btn sec" href="/gestion/ventes">← Ventes</a>
+  <div class="droite">
+    <a class="btn sec" target="_blank" href="/gestion/ventes/<%= v.id %>/ticket"><%- icon('imprimer') %> Ticket</a>
+    <% if (v.statut === 'payee') { %>
+    <form method="post" action="/gestion/ventes/<%= v.id %>/annuler" data-confirm="Annuler cette vente ? Les articles seront remis en stock."><button class="btn rouge">Annuler la vente</button></form>
+    <% } %>
+  </div>
+</div>
+<div class="grid2">
+  <div class="carte">
+    <h2>Articles</h2>
+    <table class="t">
+      <tr><th>Article</th><th class="n">Qté</th><th class="n">P.U.</th><th class="n">Total</th><% if (estProprietaire) { %><th class="n">Marge</th><% } %></tr>
+      <% v.lignes.forEach(function(l){ %>
+      <tr><td><%= l.libelle %></td><td class="n"><%= l.quantite %></td><td class="n"><%= fcfa(l.prix_unitaire) %></td><td class="n"><%= fcfa(l.quantite*l.prix_unitaire) %></td>
+      <% if (estProprietaire) { %><td class="n"><%= fcfa(l.quantite*(l.prix_unitaire-l.cout_unitaire)) %></td><% } %></tr>
+      <% }) %>
+      <tr><td colspan="3" class="n">Sous-total</td><td class="n"><%= fcfa(v.sous_total) %></td></tr>
+      <% if (v.remise) { %><tr><td colspan="3" class="n">Remise</td><td class="n">− <%= fcfa(v.remise) %></td></tr><% } %>
+      <tr><td colspan="3" class="n"><b>Total</b></td><td class="n"><b><%= fcfa(v.total) %></b></td></tr>
+    </table>
+  </div>
+  <div class="carte">
+    <h2>Informations</h2>
+    <p><b>N° :</b> <%= v.numero %></p>
+    <p><b>Date :</b> <%= dateFr(v.created_at, true) %></p>
+    <p><b>Statut :</b> <span class="tag <%= v.statut==='payee'?'ok':'rupture' %>"><%= v.statut==='payee'?'Payée':'Annulée' %></span></p>
+    <p><b>Client :</b> <%= v.client ? v.client + (v.client_tel ? ' (' + v.client_tel + ')' : '') : 'Client comptoir' %></p>
+    <p><b>Paiement :</b> <%= v.mode_paiement %><% if (v.montant_recu) { %> — reçu <%= fcfa(v.montant_recu) %>, rendu <%= fcfa(Math.max(0, v.montant_recu - v.total)) %><% } %></p>
+    <p><b>Origine :</b> <%= v.source === 'site' ? 'Commande site web' : 'Boutique (caisse)' %></p>
+    <p><b>Vendu par :</b> <%= v.vendeur || '—' %></p>
+  </div>
+</div>
+<%- include('../partials/admin_bas') %>

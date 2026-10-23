@@ -1,0 +1,17 @@
+<%- include('../partials/admin_haut') %>
+<% var st = { recu: ['Reçu','ok'], en_attente: ['En attente','faible'], annule: ['Annulé','rupture'] }; %>
+<div class="barre-outils">
+  <div class="chips"><a href="/gestion/achats" class="actif">Achats</a><a href="/gestion/fournisseurs">Fournisseurs</a></div>
+  <div class="droite"><a class="btn" href="/gestion/achats/nouveau"><%- icon('plus') %> Nouvel achat</a></div>
+</div>
+<div class="carte"><div class="table-scroll"><table class="t">
+  <tr><th>Date</th><th>Référence</th><th>Fournisseur</th><th class="n">Pièces</th><th class="n">Montant</th><th>Statut</th><th>Saisi par</th></tr>
+  <% achats.forEach(function(a){ %>
+  <tr onclick="location='/gestion/achats/<%= a.id %>'" style="cursor:pointer">
+    <td><%= dateFr(a.date_achat) %></td><td><%= a.reference || ('ACH-' + a.id) %></td><td><%= a.fournisseur || '—' %></td>
+    <td class="n"><%= a.pieces || 0 %></td><td class="n"><b><%= fcfa(a.total) %></b></td>
+    <td><span class="tag <%= st[a.statut][1] %>"><%= st[a.statut][0] %></span></td><td><%= a.utilisateur || '—' %></td>
+  </tr>
+  <% }) %>
+</table></div><% if (!achats.length) { %><div class="vide">Aucun approvisionnement enregistré.</div><% } %></div>
+<%- include('../partials/admin_bas') %>

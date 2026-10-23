@@ -1,0 +1,42 @@
+<%- include('../partials/admin_haut') %>
+<div class="barre-outils">
+  <a class="btn sec" href="/gestion/<%= cle %>">← <%= T.titre %></a>
+  <div class="droite">
+    <% if (c.id && cle === 'fournisseurs') { %><a class="btn" href="/gestion/achats/nouveau?fournisseur=<%= c.id %>"><%- icon('plus') %> Nouvel achat</a><% } %>
+    <% if (c.id && c.telephone) { %><a class="btn vert" target="_blank" href="https://wa.me/<%= (c.telephone.replace(/\D/g,'').length <= 10 ? '225' : '') + c.telephone.replace(/\D/g,'') %>">WhatsApp</a><% } %>
+  </div>
+</div>
+<div class="grid2">
+  <div>
+    <% if (c.id) { %>
+    <div class="carte">
+      <h2>Historique <small>(<%= historique.length %>)</small></h2>
+      <div class="table-scroll"><table class="t">
+        <tr><th>Date</th><th>Réf.</th><th>Détail</th><th class="n">Montant</th><th>Statut</th></tr>
+        <% historique.forEach(function(h){ %>
+        <tr onclick="location='/gestion/<%= cle==='clients'?'ventes':'achats' %>/<%= h.id %>'" style="cursor:pointer"><td><%= dateFr(h.date) %></td><td><%= h.ref %></td><td style="max-width:320px"><small><%= h.detail %></small></td><td class="n"><b><%= fcfa(h.total) %></b></td>
+          <td><span class="tag <%= h.statut==='annulee'||h.statut==='annule' ? 'rupture' : h.statut==='en_attente' ? 'faible' : 'ok' %>"><%= {payee:'Payée',annulee:'Annulée',recu:'Reçu',en_attente:'En attente',annule:'Annulé'}[h.statut] %></span></td></tr>
+        <% }) %>
+      </table></div>
+      <% if (!historique.length) { %><div class="vide">Aucun historique.</div><% } %>
+    </div>
+    <% if (typeof commandes !== 'undefined' && commandes.length) { %>
+    <div class="carte"><h2>Commandes sur le site</h2>
+      <table class="t"><% commandes.forEach(function(k){ %><tr><td><%= dateFr(k.created_at) %></td><td><%= k.numero %></td><td class="n"><%= fcfa(k.total) %></td><td><%= k.statut %></td></tr><% }) %></table></div>
+    <% } %>
+    <% } else { %><div class="carte"><div class="vide">L'historique apparaîtra ici après l'enregistrement.</div></div><% } %>
+  </div>
+  <div class="carte">
+    <h2>Fiche <%= T.un %></h2>
+    <form method="post">
+      <% T.champs.forEach(function(ch){ %>
+      <div class="champ"><label class="l"><%= ch[1] %></label>
+        <% if (ch[2] === 'textarea') { %><textarea name="<%= ch[0] %>"><%= c[ch[0]] || '' %></textarea><% } else { %><input type="text" name="<%= ch[0] %>" value="<%= c[ch[0]] || '' %>" <%= ch[0]==='nom'?'required':'' %>><% } %>
+      </div>
+      <% }) %>
+      <button class="btn">Enregistrer</button>
+    </form>
+    <% if (c.id) { %><form method="post" action="/gestion/<%= cle %>/<%= c.id %>/supprimer" data-confirm="Supprimer ce <%= T.un %> ?" style="margin-top:20px"><button class="btn rouge petit">Supprimer</button></form><% } %>
+  </div>
+</div>
+<%- include('../partials/admin_bas') %>

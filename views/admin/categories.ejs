@@ -1,0 +1,33 @@
+<%- include('../partials/admin_haut') %>
+<div class="barre-outils"><a class="btn sec" href="/gestion/articles">← Articles</a></div>
+<div class="grid2">
+  <div class="carte">
+    <h2>Catégories <small>(elles forment les menus Hommes / Femmes du site)</small></h2>
+    <table class="t">
+      <tr><th>Nom</th><th>Rayon</th><th>Ordre</th><th>Menu</th><th class="n">Articles</th><th></th></tr>
+      <% categories.forEach(function(c){ %>
+      <% var f = 'fc' + c.id; %>
+      <tr>
+        <td><input form="<%= f %>" type="text" name="nom" value="<%= c.nom %>"></td>
+        <td><select form="<%= f %>" name="genre"><option value="homme" <%= c.genre==='homme'?'selected':'' %>>Hommes</option><option value="femme" <%= c.genre==='femme'?'selected':'' %>>Femmes</option><option value="mixte" <%= c.genre==='mixte'?'selected':'' %>>Les deux</option></select></td>
+        <td style="width:80px"><input form="<%= f %>" type="number" name="ordre" value="<%= c.ordre %>"></td>
+        <td><input form="<%= f %>" type="checkbox" name="afficher_menu" value="1" <%= c.afficher_menu?'checked':'' %>></td>
+        <td class="n"><%= c.nb %></td>
+        <td style="white-space:nowrap"><button form="<%= f %>" class="btn petit">OK</button>
+          <button form="<%= f %>" class="btn rouge petit" formaction="/gestion/categories/<%= c.id %>/supprimer" data-confirm-btn="Supprimer la catégorie « <%= c.nom %> » ?">×</button></td>
+      </tr>
+      <% }) %>
+    </table>
+    <% categories.forEach(function(c){ %><form id="fc<%= c.id %>" method="post" action="/gestion/categories"><input type="hidden" name="id" value="<%= c.id %>"></form><% }) %>
+  </div>
+  <div class="carte">
+    <h2>Nouvelle catégorie</h2>
+    <form method="post" action="/gestion/categories">
+      <div class="champ"><label class="l">Nom</label><input type="text" name="nom" required placeholder="Ex : Pantalon"></div>
+      <div class="champ"><label class="l">Rayon</label><select name="genre"><option value="homme">Hommes</option><option value="femme">Femmes</option><option value="mixte">Les deux</option></select></div>
+      <div class="champ"><label class="l">Ordre d'affichage</label><input type="number" name="ordre" value="10"></div>
+      <button class="btn">Ajouter</button>
+    </form>
+  </div>
+</div>
+<%- include('../partials/admin_bas') %>

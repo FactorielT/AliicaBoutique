@@ -1,0 +1,40 @@
+<%- include('../partials/shop_haut') %>
+<div class="wrap">
+  <div class="entete-page"><div class="fil"><a href="/">Accueil</a> / <a href="/panier">Panier</a> / <b>Commande</b></div><h1>Finaliser ma commande</h1></div>
+  <form class="panier" method="post" action="/commande" id="formCommande">
+    <div>
+      <% if (erreur) { %><div class="alerte erreur"><%= erreur %></div><% } %>
+      <h3 style="letter-spacing:.08em">VOS COORDONNÉES</h3>
+      <div class="form-grid">
+        <div class="champ"><label>Nom complet *</label><input name="nom" required value="<%= form.nom || '' %>"></div>
+        <div class="champ"><label>Téléphone *</label><input name="telephone" id="telephone" required value="<%= form.telephone || '' %>" placeholder="07 00 00 00 00"></div>
+        <div class="champ"><label>E-mail</label><input type="email" name="email" value="<%= form.email || '' %>"></div>
+        <div class="champ"><label>Ville / Commune</label><input name="ville" value="<%= form.ville || '' %>" placeholder="Cocody, Yopougon…"></div>
+        <div class="champ plein"><label>Adresse de livraison *</label><input name="adresse" required value="<%= form.adresse || '' %>" placeholder="Quartier, repère…"></div>
+        <div class="champ plein"><label>Note pour la livraison</label><textarea name="notes"><%= form.notes || '' %></textarea></div>
+      </div>
+      <h3 style="letter-spacing:.08em;margin-top:34px">MODE DE PAIEMENT</h3>
+      <div class="modes">
+        <% s.modes_paiement_site.split(',').map(function(m){return m.trim()}).filter(Boolean).forEach(function(m, i){ %>
+        <label><input type="radio" name="mode_paiement" value="<%= m %>" <%= (form.mode_paiement ? form.mode_paiement===m : i===0) ? 'checked' : '' %>><span><%= m %></span></label>
+        <% }) %>
+      </div>
+      <p style="font-size:14px;color:#555;margin-top:18px"><%= s.livraison_texte %></p>
+    </div>
+    <div class="recap">
+      <h3>VOTRE COMMANDE</h3>
+      <% lignes.forEach(function(l){ %><div class="l" style="font-size:14px"><span><%= l.q %> × <%= l.nom %><%= l.taille ? ' (' + l.taille + ')' : '' %></span><span><%= fcfa(l.total) %></span></div><% }) %>
+      <div class="l t" style="font-size:15px;font-weight:400"><span>Sous-total</span><span data-st="<%= sousTotal %>"><%= fcfa(sousTotal) %></span></div>
+      <div class="champ" style="margin:16px 0">
+        <label>Code promo</label>
+        <div style="display:flex;gap:8px"><input name="code_promo" id="codePromo" value="<%= form.code_promo || '' %>" style="text-transform:uppercase"><button type="button" class="btn ligne" id="btnPromo" style="padding:0 16px">OK</button></div>
+        <small id="msgPromo"></small>
+      </div>
+      <div class="l" id="ligneRemise" style="display:none;color:#2e7d32"><span>Remise</span><span id="remise"></span></div>
+      <div class="l"><span>Livraison</span><span data-frais="<%= frais %>"><%= frais ? fcfa(frais) : 'à confirmer' %></span></div>
+      <div class="l t"><span>Total</span><span id="total"><%= fcfa(sousTotal + frais) %></span></div>
+      <button class="btn plein" style="margin-top:16px">Valider la commande</button>
+    </div>
+  </form>
+</div>
+<%- include('../partials/shop_bas') %>

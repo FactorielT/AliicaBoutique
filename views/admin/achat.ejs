@@ -1,0 +1,28 @@
+<%- include('../partials/admin_haut') %>
+<% var st = { recu: ['Reçu','ok'], en_attente: ['En attente','faible'], annule: ['Annulé','rupture'] }; %>
+<div class="barre-outils">
+  <a class="btn sec" href="/gestion/achats">← Approvisionnements</a>
+  <div class="droite">
+    <% if (a.statut === 'en_attente') { %>
+      <form method="post" action="/gestion/achats/<%= a.id %>/recevoir" data-confirm="Confirmer la réception ? Le stock sera augmenté."><button class="btn vert">Marchandise reçue</button></form>
+      <form method="post" action="/gestion/achats/<%= a.id %>/annuler" data-confirm="Annuler cette commande fournisseur ?"><button class="btn rouge">Annuler</button></form>
+    <% } %>
+    <button class="btn sec" onclick="print()"><%- icon('imprimer') %> Imprimer</button>
+  </div>
+</div>
+<div class="grid2">
+  <div class="carte"><h2>Articles</h2>
+    <table class="t"><tr><th>Article</th><th class="n">Qté</th><th class="n">P.U.</th><th class="n">Total</th></tr>
+    <% a.lignes.forEach(function(l){ %><tr><td><%= l.nom %> <small><%= [l.taille,l.couleur].filter(Boolean).join(' / ') %></small></td><td class="n"><%= l.quantite %></td><td class="n"><%= fcfa(l.prix_unitaire) %></td><td class="n"><%= fcfa(l.quantite*l.prix_unitaire) %></td></tr><% }) %>
+    <tr><td colspan="3" class="n"><b>Total</b></td><td class="n"><b><%= fcfa(a.total) %></b></td></tr></table>
+  </div>
+  <div class="carte"><h2>Informations</h2>
+    <p><b>Statut :</b> <span class="tag <%= st[a.statut][1] %>"><%= st[a.statut][0] %></span></p>
+    <p><b>Date :</b> <%= dateFr(a.date_achat) %></p>
+    <p><b>Référence :</b> <%= a.reference || ('ACH-' + a.id) %></p>
+    <p><b>Fournisseur :</b> <%= a.fournisseur ? a.fournisseur + (a.f_tel ? ' (' + a.f_tel + ')' : '') : '—' %></p>
+    <p><b>Saisi par :</b> <%= a.utilisateur || '—' %></p>
+    <% if (a.notes) { %><p><b>Notes :</b> <%= a.notes %></p><% } %>
+  </div>
+</div>
+<%- include('../partials/admin_bas') %>

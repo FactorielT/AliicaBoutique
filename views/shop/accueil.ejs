@@ -1,0 +1,64 @@
+<%- include('../partials/shop_haut') %>
+
+<% if (slides.length) { %>
+<section class="hero" data-slider>
+  <% slides.forEach(function(sl, i){ %>
+  <div class="slide <%= i === 0 ? 'actif' : '' %>" style="background:<%= sl.couleur_fond %>">
+    <div class="wrap">
+      <div class="txt">
+        <% if (sl.surtitre) { %><div class="sur"><%= sl.surtitre %></div><% } %>
+        <% if (i === 0) { %><h1><%= sl.titre %></h1><% } else { %><h2><%= sl.titre %></h2><% } %>
+        <% if (sl.bouton_texte) { %><a class="lien-achat" href="<%= sl.lien || '/boutique' %>"><%= sl.bouton_texte %></a><% } %>
+      </div>
+      <div class="img"><% if (sl.image_id) { %><img src="/img/<%= sl.image_id %>" alt="<%= sl.titre %>" <%= i ? 'loading=lazy' : '' %>><% } %></div>
+    </div>
+  </div>
+  <% }) %>
+  <% if (slides.length > 1) { %><div class="dots"><% slides.forEach(function(sl, i){ %><button class="<%= i === 0 ? 'actif' : '' %>" aria-label="Diapositive <%= i+1 %>"></button><% }) %></div><% } %>
+</section>
+<% } %>
+
+<% sections.forEach(function(sec){ %>
+  <% if (sec.type === 'onglets' && sec.onglets.length) { %>
+  <section class="bloc wrap" data-onglets>
+    <div class="onglets"><% sec.onglets.forEach(function(o, i){ %><button class="<%= i === 0 ? 'actif' : '' %>"><%= o.nom %></button><% }) %></div>
+    <% sec.onglets.forEach(function(o, i){ %>
+    <div class="tab <%= i === 0 ? 'actif' : '' %>">
+      <% if (o.produits.length) { %>
+      <div class="carrousel">
+        <button class="fleche g" aria-label="Précédent"><svg width="18" height="18" viewBox="0 0 18 18"><path d="M11 3L5 9l6 6" fill="none" stroke="#000" stroke-width="1.5"/></svg></button>
+        <div class="rail"><% o.produits.forEach(function(p){ %><%- include('../partials/carte', { p: p }) %><% }) %></div>
+        <button class="fleche d" aria-label="Suivant"><svg width="18" height="18" viewBox="0 0 18 18"><path d="M7 3l6 6-6 6" fill="none" stroke="#000" stroke-width="1.5"/></svg></button>
+      </div>
+      <% } else { %><p class="vide">Nouveautés bientôt disponibles.</p><% } %>
+      <div class="voir-plus"><a href="/categorie/<%= o.slug %>">Voir plus de <%= o.nom.toLowerCase() %>s &gt;&gt;</a></div>
+    </div>
+    <% }) %>
+  </section>
+  <% } else if (sec.type === 'banniere') { var c = sec.config; %>
+  <section class="banniere" style="background:<%= c.couleur_fond || '#e1e6e4' %>">
+    <div class="wrap">
+      <div><% if (c.image_gauche) { %><img src="/img/<%= c.image_gauche %>" alt="" loading="lazy"><% } %></div>
+      <div class="centre">
+        <% if (c.surtitre) { %><div class="sur"><%= c.surtitre %></div><% } %>
+        <h2><%= c.titre %></h2>
+        <% if (c.bouton_texte) { %><a class="lien-achat" href="<%= c.lien || '/boutique' %>"><%= c.bouton_texte %></a><% } %>
+      </div>
+      <div><% if (c.image_droite) { %><img src="/img/<%= c.image_droite %>" alt="" loading="lazy"><% } %></div>
+    </div>
+  </section>
+  <% } else if (sec.type === 'offre') { var c = sec.config; %>
+  <section class="offre">
+    <h3><%= c.titre %></h3>
+    <p><%- (c.texte || '').split('\n').map(function(l){ return l.replace(/[&<>"]/g, function(ch){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]; }); }).join('<br>') %></p>
+    <% if (c.bouton_texte) { %><p><a href="<%= c.lien || '/boutique' %>"><%= c.bouton_texte %></a></p><% } %>
+  </section>
+  <% } else if (sec.type === 'texte') { %>
+  <section class="texte-bloc wrap">
+    <% if (sec.titre) { %><h2 style="font-weight:400;letter-spacing:.06em"><%= sec.titre %></h2><% } %>
+    <%- texteEnHtml(sec.config.texte) %>
+  </section>
+  <% } %>
+<% }) %>
+
+<%- include('../partials/shop_bas') %>

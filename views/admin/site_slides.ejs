@@ -1,0 +1,23 @@
+<%- include('../partials/admin_haut') %>
+<div class="barre-outils">
+  <a class="btn sec" href="/gestion/site">← Mon site web</a>
+  <div class="droite"><a class="btn" href="/gestion/site/diaporama/nouveau"><%- icon('plus') %> Nouvelle diapositive</a></div>
+</div>
+<div class="alerte info">💡 Les diapositives défilent automatiquement en haut de la page d'accueil. Utilisez les flèches pour changer l'ordre. Conseil : photo détourée ou sur fond uni, format portrait.</div>
+<div class="slides-liste">
+  <% slides.forEach(function(sl, i){ %>
+  <div class="sl">
+    <div class="ordre">
+      <form method="post" action="/gestion/site/diaporama/<%= sl.id %>/deplacer"><button name="sens" value="haut" <%= i===0?'disabled':'' %>>▲</button></form>
+      <form method="post" action="/gestion/site/diaporama/<%= sl.id %>/deplacer"><button name="sens" value="bas" <%= i===slides.length-1?'disabled':'' %>>▼</button></form>
+    </div>
+    <img src="<%= imgUrl(sl.image_id) %>" style="background:<%= sl.couleur_fond %>" alt="">
+    <div class="info"><small style="color:#6e7387;letter-spacing:.08em"><%= sl.surtitre %></small><br><b style="font-size:16px"><%= sl.titre %></b><br><small><%= sl.bouton_texte %> → <%= sl.lien %></small></div>
+    <label class="interrupteur" title="Afficher / masquer"><input type="checkbox" data-toggle-url="/gestion/api/site/diaporama/<%= sl.id %>/actif" <%= sl.actif?'checked':'' %>><span></span></label>
+    <a class="btn sec petit" href="/gestion/site/diaporama/<%= sl.id %>">Modifier</a>
+    <form method="post" action="/gestion/site/diaporama/<%= sl.id %>/supprimer" data-confirm="Supprimer cette diapositive ?"><button class="btn rouge petit">×</button></form>
+  </div>
+  <% }) %>
+  <% if (!slides.length) { %><div class="carte vide">Aucune diapositive. <a class="lien" href="/gestion/site/diaporama/nouveau">Créez la première</a></div><% } %>
+</div>
+<%- include('../partials/admin_bas') %>

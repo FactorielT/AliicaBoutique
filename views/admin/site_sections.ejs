@@ -1,0 +1,33 @@
+<%- include('../partials/admin_haut') %>
+<div class="barre-outils"><a class="btn sec" href="/gestion/site">← Mon site web</a></div>
+<div class="grid2">
+  <div>
+    <div class="alerte info">💡 La page d'accueil affiche ces sections dans cet ordre, juste sous le diaporama.</div>
+    <div class="slides-liste">
+      <% sections.forEach(function(s, i){ var cats = s.type === 'onglets' ? (s.config.categories || []).map(function(id){ var c = categories.find(function(x){ return x.id == id; }); return c ? c.nom : ''; }).filter(Boolean).join(' · ') : ''; %>
+      <div class="sl">
+        <div class="ordre">
+          <form method="post" action="/gestion/site/sections/<%= s.id %>/deplacer"><button name="sens" value="haut" <%= i===0?'disabled':'' %>>▲</button></form>
+          <form method="post" action="/gestion/site/sections/<%= s.id %>/deplacer"><button name="sens" value="bas" <%= i===sections.length-1?'disabled':'' %>>▼</button></form>
+        </div>
+        <div class="info">
+          <span class="tag info"><%= {onglets:'Onglets produits',banniere:'Bannière',offre:'Offre spéciale',texte:'Texte'}[s.type] %></span>
+          <b style="display:block;margin-top:6px"><%= s.titre || '' %></b>
+          <small style="color:#6e7387"><%= cats %></small>
+        </div>
+        <label class="interrupteur"><input type="checkbox" data-toggle-url="/gestion/api/site/sections/<%= s.id %>/actif" <%= s.actif?'checked':'' %>><span></span></label>
+        <a class="btn sec petit" href="/gestion/site/sections/<%= s.id %>">Modifier</a>
+        <form method="post" action="/gestion/site/sections/<%= s.id %>/supprimer" data-confirm="Supprimer cette section ?"><button class="btn rouge petit">×</button></form>
+      </div>
+      <% }) %>
+      <% if (!sections.length) { %><div class="carte vide">Aucune section.</div><% } %>
+    </div>
+  </div>
+  <div class="carte">
+    <h2>Ajouter une section</h2>
+    <% Object.keys(TYPES_SECTIONS).forEach(function(t){ %>
+      <a class="btn sec" style="width:100%;margin-bottom:10px;justify-content:flex-start" href="/gestion/site/sections/nouveau?type=<%= t %>"><%- icon('plus') %> <%= TYPES_SECTIONS[t] %></a>
+    <% }) %>
+  </div>
+</div>
+<%- include('../partials/admin_bas') %>

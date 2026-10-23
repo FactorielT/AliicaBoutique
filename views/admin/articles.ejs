@@ -1,0 +1,33 @@
+<%- include('../partials/admin_haut') %>
+<form class="barre-outils" method="get">
+  <input type="search" name="q" value="<%= q %>" placeholder="🔍 Rechercher un article…">
+  <select name="categorie" onchange="this.form.submit()"><option value="">Toutes catégories</option><% categories.forEach(function(c){ %><option value="<%= c.id %>" <%= cat===c.id?'selected':'' %>><%= c.nom %></option><% }) %></select>
+  <select name="statut" onchange="this.form.submit()">
+    <option value="">Tous les statuts</option>
+    <option value="dispo" <%= statut==='dispo'?'selected':'' %>>Disponible</option>
+    <option value="faible" <%= statut==='faible'?'selected':'' %>>Stock faible</option>
+    <option value="rupture" <%= statut==='rupture'?'selected':'' %>>Rupture</option>
+    <option value="hors_ligne" <%= statut==='hors_ligne'?'selected':'' %>>Non visibles sur le site</option>
+  </select>
+  <div class="droite"><a class="btn sec" href="/gestion/categories">Catégories</a><a class="btn" href="/gestion/articles/nouveau"><%- icon('plus') %> Ajouter un article</a></div>
+</form>
+<div class="carte">
+  <div class="table-scroll"><table class="t">
+    <tr><th>Image</th><th>Nom</th><th>Catégorie</th><th class="n">Prix</th><% if (estProprietaire) { %><th class="n">Prix d'achat</th><th class="n">Marge</th><% } %><th class="n">Stock</th><th>Statut</th><th>Sur le site</th><th></th></tr>
+    <% produits.forEach(function(p){ var prix = p.prix_promo || p.prix_vente; %>
+    <tr>
+      <td><img class="mini" src="<%= imgUrl(p.image_id) %>" alt=""></td>
+      <td><a href="/gestion/articles/<%= p.id %>"><b><%= p.nom %></b></a><br><small style="color:#6e7387"><%= p.marque || '' %><%= p.nb_var > 1 ? ' · ' + p.nb_var + ' variantes' : '' %></small></td>
+      <td><%= p.categorie || 'Non classé' %></td>
+      <td class="n"><%= fcfa(prix) %><% if (p.prix_promo) { %><br><small style="text-decoration:line-through;color:#999"><%= fcfa(p.prix_vente) %></small><% } %></td>
+      <% if (estProprietaire) { %><td class="n"><%= fcfa(p.prix_achat) %></td><td class="n"><%= p.prix_achat ? Math.round((prix - p.prix_achat) / prix * 100) + '%' : '—' %></td><% } %>
+      <td class="n"><b><%= p.stock %></b></td>
+      <td><% if (p.stock <= 0) { %><span class="tag rupture">Rupture</span><% } else if (p.stock <= p.seuil_alerte) { %><span class="tag faible">Faible</span><% } else { %><span class="tag ok">Disponible</span><% } %></td>
+      <td><label class="interrupteur"><input type="checkbox" data-toggle-url="/gestion/api/articles/<%= p.id %>/publie" <%= p.publie_site ? 'checked' : '' %>><span></span></label></td>
+      <td><a class="btn sec petit" href="/gestion/articles/<%= p.id %>">Modifier</a></td>
+    </tr>
+    <% }) %>
+  </table></div>
+  <% if (!produits.length) { %><div class="vide">Aucun article. <a class="lien" href="/gestion/articles/nouveau">Ajouter le premier</a></div><% } %>
+</div>
+<%- include('../partials/admin_bas') %>

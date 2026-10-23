@@ -1,0 +1,24 @@
+<%- include('../partials/admin_haut') %>
+<form class="barre-outils" method="get">
+  <input type="search" name="q" value="<%= q %>" placeholder="N° de vente ou client">
+  <label>Du <input type="date" name="du" value="<%= du %>"></label>
+  <label>Au <input type="date" name="au" value="<%= au %>"></label>
+  <button class="btn sec">Filtrer</button>
+  <div class="droite"><a class="btn" href="/gestion/caisse"><%- icon('plus') %> Nouvelle vente</a></div>
+</form>
+<div class="carte">
+  <h2><%= ventes.length %> vente(s) <small>· total encaissé : <b><%= fcfa(tot) %></b></small></h2>
+  <div class="table-scroll"><table class="t">
+    <tr><th>Date</th><th>N°</th><th>Client</th><th>Articles</th><th>Paiement</th><th>Origine</th><th>Vendu par</th><th class="n">Total</th><th>Statut</th></tr>
+    <% ventes.forEach(function(v){ %>
+    <tr onclick="location='/gestion/ventes/<%= v.id %>'" style="cursor:pointer">
+      <td><%= dateFr(v.created_at, true) %></td><td><%= v.numero %></td><td><%= v.client || '—' %></td><td><%= v.articles %></td>
+      <td><%= v.mode_paiement %></td><td><span class="tag <%= v.source==='site'?'info':'gris' %>"><%= v.source==='site'?'Site web':'Boutique' %></span></td>
+      <td><%= v.vendeur || '—' %></td><td class="n"><b><%= fcfa(v.total) %></b></td>
+      <td><span class="tag <%= v.statut==='payee'?'ok':'rupture' %>"><%= v.statut==='payee'?'Payée':'Annulée' %></span></td>
+    </tr>
+    <% }) %>
+  </table></div>
+  <% if (!ventes.length) { %><div class="vide">Aucune vente sur cette période.</div><% } %>
+</div>
+<%- include('../partials/admin_bas') %>

@@ -1,0 +1,20 @@
+<%- include('../partials/admin_haut') %>
+<div class="carte" style="background:linear-gradient(135deg,#1d2033,#3b3570);color:#fff;border:0;display:flex;gap:24px;align-items:center;flex-wrap:wrap">
+  <div style="flex:1;min-width:240px">
+    <h2 style="font-size:22px;margin-bottom:8px">Bonjour <%= user.nom %> 👋</h2>
+    <p style="margin:0;opacity:.85;line-height:1.6">Ici, vous animez votre site vous-même : changez les photos de la page d'accueil, mettez des articles en avant, lancez une promo… Tout est enregistré instantanément.</p>
+  </div>
+  <a class="btn" href="/" target="_blank" style="background:#fff;color:#1d2033"><%- icon('oeil') %> Voir mon site</a>
+</div>
+<div class="tuiles-site">
+  <a class="tuile-site" href="/gestion/site/diaporama"><div class="ic" style="background:#5b4ee8">🖼️</div><b>Diaporama d'accueil</b><p>Les grandes photos en haut du site. <%= stats.slides %> diapositive(s) active(s).</p></a>
+  <a class="tuile-site" href="/gestion/site/sections"><div class="ic" style="background:#22a45d">🧩</div><b>Sections de l'accueil</b><p>Onglets produits, bannières, offre spéciale… <%= stats.sections %> section(s).</p></a>
+  <a class="tuile-site" href="/gestion/articles"><div class="ic" style="background:#3a7bf6">👕</div><b>Articles en ligne</b><p><%= stats.produits %> article(s) visibles. Activez / masquez un article en un clic.</p></a>
+  <a class="tuile-site" href="/gestion/commandes"><div class="ic" style="background:#e5484d">🛍️</div><b>Commandes reçues</b><p><%= nbCommandesNouvelles %> nouvelle(s) commande(s) à traiter.</p></a>
+  <a class="tuile-site" href="/gestion/site/promos"><div class="ic" style="background:#f59e0b">🏷️</div><b>Codes promo</b><p><%= stats.promos %> code(s) actif(s). Créez une réduction en 10 secondes.</p></a>
+  <a class="tuile-site" href="/gestion/site/infos"><div class="ic" style="background:#8b5cf6">🎨</div><b>Apparence & infos</b><p>Logo, bandeau du haut, téléphone, horaires, réseaux sociaux, livraison.</p></a>
+  <a class="tuile-site" href="/gestion/site/pages"><div class="ic" style="background:#0ea5a4">📄</div><b>Pages d'information</b><p>Livraison, retours, paiement, infos légales… <%= stats.pages %> page(s).</p></a>
+  <a class="tuile-site" href="/gestion/categories"><div class="ic" style="background:#64748b">🗂️</div><b>Menus & catégories</b><p>Les rubriques des menus Hommes et Femmes.</p></a>
+  <a class="tuile-site" href="/gestion/site/newsletter"><div class="ic" style="background:#db2777">✉️</div><b>Newsletter</b><p><%= stats.abonnes %> abonné(s). Exportez la liste en un clic.</p></a>
+</div>
+<%- include('../partials/admin_bas') %>

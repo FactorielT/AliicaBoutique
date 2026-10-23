@@ -1,0 +1,57 @@
+<%- include('../partials/shop_haut') %>
+<div class="wrap">
+  <div class="entete-page">
+    <div class="fil"><a href="/">Accueil</a><% fil.forEach(function(f, i){ %> &nbsp;/&nbsp; <% if (f[1]) { %><a href="<%= f[1] %>"><%= f[0] %></a><% } else { %><b><%= f[0] %></b><% } %><% }) %></div>
+    <h1><%= titre %></h1>
+  </div>
+
+  <form class="catalogue" method="get" id="formFiltres">
+    <% if (q) { %><input type="hidden" name="q" value="<%= q %>"><% } %>
+    <input type="hidden" name="vue" value="<%= vue %>">
+    <aside class="filtres" id="filtres">
+      <div class="groupe">
+        <h3>TYPE</h3>
+        <% [['femme','Femme'],['homme','Homme'],['mixte','Non classé']].forEach(function(g){ var n = (comptes.find(function(c){return c.genre===g[0]})||{n:0}).n; %>
+        <label><input type="checkbox" name="type" value="<%= g[0] %>" <%= genres.includes(g[0]) ? 'checked' : '' %> data-auto> <%= g[1] %> (<%= n %>)</label>
+        <% }) %>
+      </div>
+      <div class="groupe">
+        <h3>PRIX</h3>
+        <% Object.keys(TRANCHES).forEach(function(k){ %>
+        <label><input type="checkbox" name="prix" value="<%= k %>" <%= tranches.includes(k) ? 'checked' : '' %> data-auto> <%= TRANCHES[k][2] %></label>
+        <% }) %>
+      </div>
+    </aside>
+    <div>
+      <div class="barre">
+        <div class="vues">
+          <a href="<%= qs({vue:'liste', page:''}) %>" class="<%= vue==='liste'?'actif':'' %>" aria-label="Vue liste"><svg width="26" height="24" viewBox="0 0 26 24" fill="none" stroke="#000" stroke-width="1.5"><rect x="1" y="2" width="24" height="8" rx="4"/><rect x="1" y="14" width="24" height="8" rx="4"/></svg></a>
+          <a href="<%= qs({vue:'grille', page:''}) %>" class="<%= vue!=='liste'?'actif':'' %>" aria-label="Vue grille"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5"><rect x="1" y="1" width="9" height="9" rx="2"/><rect x="14" y="1" width="9" height="9" rx="2"/><rect x="1" y="14" width="9" height="9" rx="2"/><rect x="14" y="14" width="9" height="9" rx="2"/></svg></a>
+        </div>
+        <button type="button" class="btn ligne btn-filtres" onclick="document.getElementById('filtres').classList.toggle('open')">Filtres</button>
+        <label class="promo"><input type="checkbox" name="promo" value="1" <%= promo ? 'checked' : '' %> data-auto> Uniquement les promos</label>
+        <select name="tri" data-auto>
+          <option value="">Tri par défaut</option>
+          <option value="nouveau" <%= tri==='nouveau'?'selected':'' %>>Nouveautés</option>
+          <option value="prix_asc" <%= tri==='prix_asc'?'selected':'' %>>Prix croissant</option>
+          <option value="prix_desc" <%= tri==='prix_desc'?'selected':'' %>>Prix décroissant</option>
+          <option value="nom" <%= tri==='nom'?'selected':'' %>>Nom A → Z</option>
+        </select>
+      </div>
+      <% if (!produits.length) { %>
+        <div class="vide">Aucun article ne correspond à votre recherche.<br><br><a class="btn ligne" href="/boutique">Voir toute la boutique</a></div>
+      <% } else { %>
+      <div class="grille <%= vue==='liste'?'liste':'' %>">
+        <% produits.forEach(function(p){ %><%- include('../partials/carte', { p: p }) %><% }) %>
+      </div>
+      <% } %>
+      <% if (pages > 1) { %>
+      <div class="pagination">
+        <% for (var i = 1; i <= pages; i++) { %><% if (i === page) { %><span class="actif"><%= i %></span><% } else { %><a href="<%= qs({page:i}) %>"><%= i %></a><% } %><% } %>
+        <% if (page < pages) { %><a href="<%= qs({page: page+1}) %>" aria-label="Suivant">»</a><% } %>
+      </div>
+      <% } %>
+    </div>
+  </form>
+</div>
+<%- include('../partials/shop_bas') %>

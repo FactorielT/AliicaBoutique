@@ -1,0 +1,56 @@
+<%- include('../partials/admin_haut') %>
+<div class="kpis">
+  <div class="kpi k-bleu"><div><small>Pièces en stock</small><b><%= nombre(tot.pieces) %></b></div></div>
+  <div class="kpi k-vert"><div><small>Valeur du stock (prix de vente)</small><b><%= nombre(tot.valeur_vente) %> FCFA</b></div></div>
+  <div class="kpi k-orange"><div><small>Stock faible</small><b><%= tot.faibles %></b></div></div>
+  <div class="kpi k-rouge"><div><small>Ruptures</small><b><%= tot.ruptures %></b></div></div>
+</div>
+<% if (estProprietaire) { %><div class="confid">🔒 Valeur du stock au prix d'achat : <b><%= fcfa(tot.valeur_achat) %></b> — visible uniquement par vous.</div><% } %>
+<form class="barre-outils" method="get">
+  <input type="search" name="q" value="<%= q %>" placeholder="🔍 Rechercher…">
+  <div class="chips">
+    <a href="/gestion/stock" class="<%= !filtre?'actif':'' %>">Tout</a>
+    <a href="/gestion/stock?filtre=alerte" class="<%= filtre==='alerte'?'actif':'' %>">Alertes</a>
+    <a href="/gestion/stock?filtre=rupture" class="<%= filtre==='rupture'?'actif':'' %>">Ruptures</a>
+  </div>
+  <div class="droite"><a class="btn sec" href="/gestion/stock/mouvements">Historique des mouvements</a><a class="btn" href="/gestion/achats/nouveau"><%- icon('plus') %> Mouvement d'entrée</a></div>
+</form>
+<div class="carte"><div class="table-scroll"><table class="t">
+  <tr><th></th><th>Article</th><th>Catégorie</th><th>Taille / couleur</th><th class="n">Quantité</th><th class="n">Seuil</th><th>Statut</th><th></th></tr>
+  <% lignes.forEach(function(l){ %>
+  <tr>
+    <td><img class="mini" src="<%= imgUrl(l.image_id) %>" alt=""></td>
+    <td><a href="/gestion/articles/<%= l.produit_id %>"><b><%= l.nom %></b></a></td>
+    <td><%= l.categorie || '—' %></td>
+    <td><%= [l.taille, l.couleur].filter(Boolean).join(' / ') || 'Unique' %></td>
+    <td class="n"><b style="font-size:16px"><%= l.stock %></b></td>
+    <td class="n"><%= l.seuil_alerte %></td>
+    <td><% if (l.stock <= 0) { %><span class="tag rupture">Rupture</span><% } else if (l.stock <= l.seuil_alerte) { %><span class="tag faible">Faible</span><% } else { %><span class="tag ok">OK</span><% } %></td>
+    <td style="white-space:nowrap"><button class="btn sec petit" data-ajuster='<%- JSON.stringify({id:l.id, nom:l.nom + " " + [l.taille,l.couleur].filter(Boolean).join(" / "), stock:l.stock}).replace(/'/g,"&#39;") %>'>Ajuster</button>
+      <a class="btn sec petit" href="/gestion/stock/mouvements?variante=<%= l.id %>">Historique</a></td>
+  </tr>
+  <% }) %>
+</table></div>
+<% if (!lignes.length) { %><div class="vide">Aucun article.</div><% } %></div>
+
+<div class="modal" id="modalAjuster"><div class="boite">
+  <h3>Ajuster le stock</h3>
+  <p id="ajNom" style="margin-top:-8px;color:#6e7387"></p>
+  <form method="post" action="/gestion/stock/ajuster">
+    <input type="hidden" name="variante_id" id="ajId">
+    <div class="chips" style="margin-bottom:14px">
+      <label class="case"><input type="radio" name="mode" value="ajouter" checked> Ajouter</label>
+      <label class="case"><input type="radio" name="mode" value="retirer"> Retirer</label>
+      <label class="case"><input type="radio" name="mode" value="fixer"> Inventaire (fixer la quantité)</label>
+    </div>
+    <div class="champ"><label class="l">Quantité</label><input type="number" name="valeur" min="0" required></div>
+    <div class="champ"><label class="l">Motif</label><select name="motif"><option>Inventaire</option><option>Article abîmé / défectueux</option><option>Perte / vol</option><option>Retour client</option><option>Cadeau / usage interne</option><option>Correction d'erreur</option></select></div>
+    <div style="display:flex;gap:10px"><button class="btn">Valider</button><button type="button" class="btn sec" onclick="this.closest('.modal').classList.remove('open')">Annuler</button></div>
+  </form>
+</div></div>
+<script>
+document.querySelectorAll('[data-ajuster]').forEach(function(b){
+  b.onclick = function(){ var d = JSON.parse(b.dataset.ajuster); document.getElementById('ajId').value = d.id; document.getElementById('ajNom').textContent = d.nom + ' — stock actuel : ' + d.stock; document.getElementById('modalAjuster').classList.add('open'); };
+});
+</script>
+<%- include('../partials/admin_bas') %>

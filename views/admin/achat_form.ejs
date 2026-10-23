@@ -1,0 +1,67 @@
+<%- include('../partials/admin_haut') %>
+<form method="post" id="formAchat">
+<input type="hidden" name="lignes" id="lignesJson">
+<div class="barre-outils"><a class="btn sec" href="/gestion/achats">← Approvisionnements</a></div>
+<div class="grid2">
+  <div class="carte">
+    <h2>Articles reçus</h2>
+    <div style="position:relative" class="champ">
+      <input type="search" id="rech" placeholder="🔍 Tapez le nom d'un article pour l'ajouter…" autocomplete="off">
+      <div id="propositions" class="carte" style="display:none;position:absolute;left:0;right:0;z-index:5;max-height:320px;overflow:auto;padding:6px;margin-top:4px"></div>
+      <div class="aide">Article inexistant ? <a class="lien" href="/gestion/articles/nouveau" target="_blank">Créez-le d'abord</a> puis revenez ici.</div>
+    </div>
+    <table class="t" id="tabLignes">
+      <thead><tr><th>Article</th><th style="width:110px">Quantité</th><th style="width:150px">Prix d'achat unitaire</th><th class="n">Total</th><th></th></tr></thead>
+      <tbody id="corpsLignes"></tbody>
+    </table>
+    <div class="vide" id="videLignes">Aucun article ajouté.</div>
+    <div style="text-align:right;font-size:18px;margin-top:14px">Total : <b id="totalAchat">0 FCFA</b></div>
+  </div>
+  <div class="carte">
+    <h2>Informations</h2>
+    <div class="champ"><label class="l">Fournisseur</label><select name="fournisseur_id"><option value="">— Aucun —</option><% fournisseurs.forEach(function(f){ %><option value="<%= f.id %>" <%= fId===f.id?'selected':'' %>><%= f.nom %></option><% }) %></select>
+      <div class="aide"><a class="lien" href="/gestion/fournisseurs/nouveau" target="_blank">+ Nouveau fournisseur</a></div></div>
+    <div class="champ"><label class="l">Date</label><input type="date" name="date_achat" value="<%= new Date().toISOString().slice(0,10) %>"></div>
+    <div class="champ"><label class="l">Référence / N° facture</label><input type="text" name="reference"></div>
+    <div class="champ"><label class="l">Statut</label>
+      <label class="case"><input type="radio" name="statut" value="recu" checked> Marchandise reçue (le stock est mis à jour)</label>
+      <label class="case"><input type="radio" name="statut" value="en_attente"> Commande en attente de livraison</label></div>
+    <div class="champ"><label class="l">Notes</label><textarea name="notes"></textarea></div>
+    <button class="btn gros">Enregistrer l'approvisionnement</button>
+  </div>
+</div>
+</form>
+<script>
+(function(){
+  var lignes = [], $ = function(id){ return document.getElementById(id); };
+  var fmt = function(n){ return Math.round(n).toLocaleString('fr-FR') + ' FCFA'; };
+  var esc = function(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
+  var t;
+  $('rech').oninput = function(){
+    clearTimeout(t); var q = this.value.trim(); if (!q) { $('propositions').style.display = 'none'; return; }
+    t = setTimeout(function(){
+      fetch('/gestion/api/variantes?q=' + encodeURIComponent(q)).then(function(r){ return r.json(); }).then(function(rows){
+        $('propositions').style.display = 'block';
+        $('propositions').innerHTML = rows.length ? rows.map(function(v, i){ return '<a href="#" data-i="' + i + '" style="display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #f0f1f6"><span><b>' + esc(v.nom) + '</b> ' + esc([v.taille, v.couleur].filter(Boolean).join(' / ')) + '</span><small>stock ' + v.stock + '</small></a>'; }).join('') : '<div style="padding:8px">Aucun résultat</div>';
+        $('propositions').querySelectorAll('[data-i]').forEach(function(a){ a.onclick = function(e){ e.preventDefault(); var v = rows[a.dataset.i];
+          if (!lignes.find(function(l){ return l.variante_id === v.id; })) lignes.push({ variante_id: v.id, nom: v.nom + ' ' + [v.taille, v.couleur].filter(Boolean).join(' / '), quantite: 1, prix_unitaire: 0 });
+          $('propositions').style.display = 'none'; $('rech').value = ''; rendu(); }; });
+      });
+    }, 250);
+  };
+  function rendu(){
+    var tab = $('corpsLignes');
+    tab.innerHTML = lignes.map(function(l, i){
+      return '<tr><td>' + esc(l.nom) + '</td><td><input type="number" min="1" value="' + l.quantite + '" data-k="quantite" data-i="' + i + '"></td><td><input type="number" min="0" value="' + l.prix_unitaire + '" data-k="prix_unitaire" data-i="' + i + '"></td><td class="n">' + fmt(l.quantite * l.prix_unitaire) + '</td><td><button type="button" class="btn sec petit" data-del="' + i + '">×</button></td></tr>';
+    }).join('');
+    tab.querySelectorAll('input').forEach(function(inp){ inp.onchange = function(){ lignes[inp.dataset.i][inp.dataset.k] = parseInt(inp.value, 10) || 0; setTimeout(rendu, 0); }; });
+    tab.querySelectorAll('[data-del]').forEach(function(b){ b.onclick = function(){ lignes.splice(b.dataset.del, 1); rendu(); }; });
+    $('videLignes').style.display = lignes.length ? 'none' : 'block';
+    $('totalAchat').textContent = fmt(lignes.reduce(function(a, l){ return a + l.quantite * l.prix_unitaire; }, 0));
+    $('lignesJson').value = JSON.stringify(lignes);
+  }
+  $('formAchat').onsubmit = function(e){ if (!lignes.length) { e.preventDefault(); alert('Ajoutez au moins un article.'); } };
+  rendu();
+})();
+</script>
+<%- include('../partials/admin_bas') %>

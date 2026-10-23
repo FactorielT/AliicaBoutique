@@ -1,0 +1,49 @@
+</main>
+<footer class="footer">
+  <div class="wrap">
+    <div class="haut">
+      <div>
+        <div class="logo-f"><img src="<%= s.logo_image_id ? '/img/' + s.logo_image_id : '/static/img/logo.png' %>" alt=""></div>
+        <p style="margin:0"><%= s.description_footer %></p>
+      </div>
+      <div>
+        <h4><%= s.newsletter_titre %></h4>
+        <p style="margin:0"><%= s.newsletter_texte %></p>
+        <form class="newsletter" action="/newsletter" method="post" data-ajax-newsletter>
+          <input type="email" name="email" placeholder="Votre adresse e-mail" required>
+          <button>S'ABONNER</button>
+        </form>
+      </div>
+    </div>
+    <div class="bas">
+      <div>
+        Tél : <a href="tel:<%= s.telephone.replace(/[^\d+]/g,'') %>"><%= s.telephone %></a><br>
+        Semaine : <%= s.horaires_semaine %><br>
+        Week-end : <%= s.horaires_weekend %>
+        <% if (s.email) { %><br><a href="mailto:<%= s.email %>"><%= s.email %></a><% } %>
+        <% if (s.adresse) { %><br><%= s.adresse %><% } %>
+      </div>
+      <div class="cols">
+        <div><h4>Hommes</h4><% menuHommes.forEach(function(c){ %><a href="/categorie/<%= c.slug %>"><%= c.nom %></a><% }) %></div>
+        <div><h4>Femmes</h4><% menuFemmes.forEach(function(c){ %><a href="/categorie/<%= c.slug %>"><%= c.nom %></a><% }) %></div>
+        <div><h4>Informations</h4><% pagesInfo.forEach(function(p){ %><a href="/page/<%= p.slug %>"><%= p.titre %></a><% }) %><a href="/suivi">Suivre ma commande</a></div>
+      </div>
+    </div>
+    <div class="copyright">
+      <div class="reseaux">
+        <% if (s.facebook) { %><a href="<%= s.facebook %>" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5"><path d="M14 8h3V4h-3a4 4 0 0 0-4 4v2H7v4h3v8h4v-8h3l1-4h-4V8a0 0 0 0 1 0 0z"/></svg></a><% } %>
+        <% if (s.instagram) { %><a href="<%= s.instagram %>" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".8" fill="#000"/></svg></a><% } %>
+        <% if (s.tiktok) { %><a href="<%= s.tiktok %>" target="_blank" rel="noopener" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5"><path d="M14 3v12a3.5 3.5 0 1 1-3.5-3.5M14 3c.5 3 2.5 4.5 5 4.5"/></svg></a><% } %>
+      </div>
+      <div><%= s.copyright %></div>
+      <div class="paiements"><span>Orange Money</span><span>MTN MoMo</span><span>Wave</span><span>Moov</span><span>VISA</span><span>Mastercard</span></div>
+    </div>
+  </div>
+</footer>
+<% if (s.whatsapp) { %>
+<a class="wa-flottant" href="https://wa.me/<%= s.whatsapp.replace(/\D/g,'') %>" target="_blank" rel="noopener" aria-label="WhatsApp"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.4 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .1-3.3-.8-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.6 2 1.1 1 2 1.3 2.3 1.4.3.1.5.1.6-.1l.9-1.1c.2-.3.4-.2.7-.1l1.9.9c.3.1.5.2.5.3.1.2.1.8-.1 1.5z"/></svg></a>
+<% } %>
+<div class="toast" id="toast"></div>
+<script src="/static/js/shop.js?v=1"></script>
+</body>
+</html>

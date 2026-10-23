@@ -1,0 +1,97 @@
+<%- include('../partials/admin_haut') %>
+<form method="post" enctype="multipart/form-data">
+<div class="barre-outils">
+  <a class="btn sec" href="/gestion/articles">← Articles</a>
+  <div class="droite">
+    <% if (p.id) { %><a class="btn sec" href="/produit/<%= p.slug %>" target="_blank"><%- icon('oeil') %> Voir sur le site</a><% } %>
+    <% if (!p.id) { %><button class="btn sec" name="continuer" value="1">Enregistrer et ajouter un autre</button><% } %>
+    <button class="btn">Enregistrer</button>
+  </div>
+</div>
+<div class="grid2">
+  <div>
+    <div class="carte">
+      <h2>Informations</h2>
+      <div class="form-grid">
+        <div class="champ plein"><label class="l">Nom de l'article *</label><input type="text" name="nom" required value="<%= p.nom || '' %>" placeholder="Ex : Chemise homme en lin"></div>
+        <div class="champ"><label class="l">Catégorie</label><select name="categorie_id"><option value="">Non classé</option><% categories.forEach(function(c){ %><option value="<%= c.id %>" <%= p.categorie_id===c.id?'selected':'' %>><%= c.nom %> (<%= c.genre %>)</option><% }) %></select></div>
+        <div class="champ"><label class="l">Marque</label><input type="text" name="marque" value="<%= p.marque || '' %>" placeholder="Aliica, Zara…"></div>
+        <div class="champ plein"><label class="l">Description (affichée sur le site)</label><textarea name="description" rows="4"><%= p.description || '' %></textarea></div>
+      </div>
+    </div>
+    <div class="carte">
+      <h2>Tailles, couleurs & stock</h2>
+      <p class="aide" style="margin-top:-8px">Une ligne par combinaison. Laissez vide pour un article sans taille (parfum, sac…). <% if (p.id) { %>Pour modifier une quantité existante, passez par <a class="lien" href="/gestion/stock?q=<%= encodeURIComponent(p.nom) %>">Stock</a> ou un approvisionnement.<% } %></p>
+      <div class="form-grid" style="background:#f7f8fc;padding:12px;border-radius:10px;margin:10px 0 16px">
+        <div class="champ" style="margin:0"><label class="l">Générer — tailles</label><input type="text" id="genTailles" placeholder="S, M, L, XL"></div>
+        <div class="champ" style="margin:0"><label class="l">couleurs</label><div style="display:flex;gap:8px"><input type="text" id="genCouleurs" placeholder="Noir, Blanc"><button type="button" class="btn sec" id="btnGen">Générer</button></div></div>
+      </div>
+      <div class="variantes" id="variantes">
+        <div class="ln" style="font-size:12px;color:#6e7387;font-weight:600"><span>Taille</span><span>Couleur</span><span><%= p.id ? 'Stock actuel' : 'Stock initial' %></span><span></span></div>
+        <% variantes.forEach(function(v){ %>
+        <div class="ln"><input type="hidden" name="v_id" value="<%= v.id %>"><input type="text" name="v_taille" value="<%= v.taille %>" placeholder="Taille"><input type="text" name="v_couleur" value="<%= v.couleur %>" placeholder="Couleur"><input type="number" name="v_stock" value="<%= v.stock %>" readonly style="background:#f3f4f8" title="Modifiable dans Stock"><button type="button" class="btn sec petit" data-suppr-ligne>×</button></div>
+        <% }) %>
+      </div>
+      <button type="button" class="btn sec petit" id="ajoutVariante"><%- icon('plus') %> Ajouter une ligne</button>
+    </div>
+  </div>
+  <div>
+    <div class="carte">
+      <h2>Prix</h2>
+      <div class="form-grid">
+        <div class="champ"><label class="l">Prix de vente (FCFA) *</label><input type="number" name="prix_vente" min="0" required value="<%= p.prix_vente || '' %>"></div>
+        <div class="champ"><label class="l">Prix promo (FCFA)</label><input type="number" name="prix_promo" min="0" value="<%= p.prix_promo || '' %>"><div class="aide">Laissez vide si pas de promo</div></div>
+        <% if (estProprietaire) { %>
+        <div class="champ plein"><label class="l">🔒 Prix d'achat / coût (FCFA)</label><input type="number" name="prix_achat" min="0" value="<%= p.prix_achat || '' %>"><div class="aide">Confidentiel : visible uniquement par la propriétaire. Mis à jour automatiquement par les approvisionnements.</div></div>
+        <% } %>
+        <div class="champ"><label class="l">Seuil d'alerte stock</label><input type="number" name="seuil_alerte" min="0" value="<%= p.seuil_alerte %>"></div>
+      </div>
+    </div>
+    <div class="carte">
+      <h2>Photos</h2>
+      <div class="images-produit">
+        <% images.forEach(function(im, i){ %>
+        <div class="im <%= i===0?'principale':'' %>"><img src="/img/<%= im.image_id %>" alt="">
+          <label><input type="radio" name="principale" value="<%= im.id %>" <%= i===0?'checked':'' %>> Principale</label>
+          <label style="color:#e5484d"><input type="checkbox" name="suppr_image" value="<%= im.id %>"> Supprimer</label></div>
+        <% }) %>
+      </div>
+      <div class="zone-image" style="margin-top:12px"><div id="apercuImages" class="images-produit" style="justify-content:center"></div>
+        <b>📷 Ajouter des photos</b><div class="aide">Cliquez ou glissez vos images ici (JPG, PNG, WebP — plusieurs possibles)</div>
+        <input type="file" name="images" accept="image/*" multiple data-apercu-multi="apercuImages"></div>
+    </div>
+    <div class="carte">
+      <h2>Site web</h2>
+      <label class="case"><input type="checkbox" name="publie_site" value="1" <%= p.publie_site ? 'checked' : '' %>> Afficher cet article sur le site</label>
+      <label class="case"><input type="checkbox" name="vedette" value="1" <%= p.vedette ? 'checked' : '' %>> Mettre en avant (en premier dans les listes)</label>
+    </div>
+    <% if (p.id) { %>
+    <button class="btn rouge" form="formSuppr" style="width:100%;justify-content:center">Supprimer l'article</button>
+    <% } %>
+  </div>
+</div>
+</form>
+<% if (p.id) { %><form id="formSuppr" method="post" action="/gestion/articles/<%= p.id %>/supprimer" data-confirm="Supprimer définitivement cet article ?"></form><% } %>
+<script>
+(function(){
+  var cont = document.getElementById('variantes');
+  function ligne(t, c){
+    var d = document.createElement('div'); d.className = 'ln';
+    d.innerHTML = '<input type="hidden" name="v_id" value=""><input type="text" name="v_taille" placeholder="Taille"><input type="text" name="v_couleur" placeholder="Couleur"><input type="number" name="v_stock" min="0" value="0"><button type="button" class="btn sec petit" data-suppr-ligne>×</button>';
+    d.querySelector('[name=v_taille]').value = t || ''; d.querySelector('[name=v_couleur]').value = c || '';
+    cont.appendChild(d);
+  }
+  document.getElementById('ajoutVariante').onclick = function(){ ligne(); };
+  cont.addEventListener('click', function(e){ if (e.target.matches('[data-suppr-ligne]')) e.target.closest('.ln').remove(); });
+  document.getElementById('btnGen').onclick = function(){
+    var ts = document.getElementById('genTailles').value.split(',').map(function(x){return x.trim()}).filter(Boolean);
+    var cs = document.getElementById('genCouleurs').value.split(',').map(function(x){return x.trim()}).filter(Boolean);
+    if (!ts.length) ts = ['']; if (!cs.length) cs = [''];
+    // retire les lignes vides non enregistrées avant de générer
+    cont.querySelectorAll('.ln').forEach(function(l){ var id = l.querySelector('[name=v_id]'); if (id && !id.value && !l.querySelector('[name=v_taille]').value && !l.querySelector('[name=v_couleur]').value) l.remove(); });
+    ts.forEach(function(t){ cs.forEach(function(c){ if (t || c) ligne(t, c); }); });
+  };
+  <% if (!variantes.length) { %>ligne();<% } %>
+})();
+</script>
+<%- include('../partials/admin_bas') %>

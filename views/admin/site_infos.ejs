@@ -1,0 +1,54 @@
+<%- include('../partials/admin_haut') %>
+<div class="barre-outils"><a class="btn sec" href="/gestion/site">← Mon site web</a></div>
+<form method="post" enctype="multipart/form-data">
+<div class="grid2">
+  <div>
+    <div class="carte">
+      <h2>Bandeau en haut du site</h2>
+      <label class="case"><input type="checkbox" name="bandeau_actif" value="1" <%= s.bandeau_actif==='1'?'checked':'' %>> Afficher le bandeau noir</label>
+      <div class="champ"><label class="l">Message</label><input type="text" name="bandeau_texte" value="<%= s.bandeau_texte %>"></div>
+      <div class="champ"><label class="l">Texte du lien</label><input type="text" name="bandeau_lien_texte" value="<%= s.bandeau_lien_texte %>"></div>
+    </div>
+    <div class="carte">
+      <h2>Coordonnées & horaires</h2>
+      <div class="form-grid">
+        <div class="champ"><label class="l">Téléphone affiché</label><input type="text" name="telephone" value="<%= s.telephone %>"></div>
+        <div class="champ"><label class="l">N° WhatsApp (avec indicatif)</label><input type="text" name="whatsapp" value="<%= s.whatsapp %>" placeholder="2250141756526"><div class="aide">Laissez vide pour masquer le bouton WhatsApp</div></div>
+        <div class="champ"><label class="l">E-mail</label><input type="email" name="email" value="<%= s.email %>"></div>
+        <div class="champ"><label class="l">Adresse</label><input type="text" name="adresse" value="<%= s.adresse %>"></div>
+        <div class="champ"><label class="l">Horaires semaine</label><input type="text" name="horaires_semaine" value="<%= s.horaires_semaine %>"></div>
+        <div class="champ"><label class="l">Horaires week-end</label><input type="text" name="horaires_weekend" value="<%= s.horaires_weekend %>"></div>
+      </div>
+    </div>
+    <div class="carte">
+      <h2>Réseaux sociaux</h2>
+      <div class="champ"><label class="l">Facebook (lien)</label><input type="url" name="facebook" value="<%= s.facebook %>"></div>
+      <div class="champ"><label class="l">Instagram (lien)</label><input type="url" name="instagram" value="<%= s.instagram %>"></div>
+      <div class="champ"><label class="l">TikTok (lien)</label><input type="url" name="tiktok" value="<%= s.tiktok %>"></div>
+    </div>
+  </div>
+  <div>
+    <div class="carte">
+      <h2>Logo & couleur</h2>
+      <div class="zone-image"><img id="apLogo" src="<%= s.logo_image_id ? '/img/' + s.logo_image_id : '/static/img/logo.png' %>" alt=""><b>Changer le logo</b><input type="file" name="logo" accept="image/*" data-apercu="apLogo"></div>
+      <% if (s.logo_image_id) { %><label class="case" style="margin-top:8px"><input type="checkbox" name="suppr_logo" value="1"> Revenir au logo d'origine</label><% } %>
+      <div class="champ" style="margin-top:14px"><label class="l">Couleur principale (bandeau, boutons)</label><input type="color" name="couleur_accent" value="<%= s.couleur_accent %>" style="width:80px;height:42px;padding:3px"></div>
+    </div>
+    <div class="carte">
+      <h2>Bas de page & newsletter</h2>
+      <div class="champ"><label class="l">Présentation de la boutique</label><textarea name="description_footer"><%= s.description_footer %></textarea></div>
+      <div class="champ"><label class="l">Titre newsletter</label><input type="text" name="newsletter_titre" value="<%= s.newsletter_titre %>"></div>
+      <div class="champ"><label class="l">Texte newsletter</label><textarea name="newsletter_texte"><%= s.newsletter_texte %></textarea></div>
+      <div class="champ"><label class="l">Copyright</label><input type="text" name="copyright" value="<%= s.copyright %>"></div>
+    </div>
+    <div class="carte">
+      <h2>Commande & livraison</h2>
+      <div class="champ"><label class="l">Frais de livraison fixes (FCFA)</label><input type="number" name="frais_livraison" min="0" value="<%= s.frais_livraison %>"><div class="aide">0 = « à confirmer par téléphone »</div></div>
+      <div class="champ"><label class="l">Message livraison</label><textarea name="livraison_texte"><%= s.livraison_texte %></textarea></div>
+      <div class="champ"><label class="l">Modes de paiement proposés (séparés par des virgules)</label><input type="text" name="modes_paiement_site" value="<%= s.modes_paiement_site %>"></div>
+    </div>
+  </div>
+</div>
+<button class="btn gros" style="max-width:400px">Enregistrer les modifications</button>
+</form>
+<%- include('../partials/admin_bas') %>

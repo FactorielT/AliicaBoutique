@@ -1,0 +1,38 @@
+<%- include('../partials/shop_haut') %>
+<div class="wrap">
+  <div class="entete-page"><div class="fil"><a href="/">Accueil</a> / <b>Panier</b></div><h1>Mon panier</h1></div>
+  <% if (!lignes.length) { %>
+    <div class="vide" style="padding-bottom:100px">Votre panier est vide.<br><br><a class="btn" href="/boutique">Découvrir la boutique</a></div>
+  <% } else { %>
+  <div class="panier">
+    <table class="tab-panier">
+      <thead><tr><th>Article</th><th class="cache-m">Prix</th><th>Qté</th><th>Total</th></tr></thead>
+      <tbody>
+      <% lignes.forEach(function(l){ %>
+        <tr>
+          <td><div class="prod"><img src="<%= imgUrl(l.image_id) %>" alt=""><div><a href="/produit/<%= l.slug %>"><b><%= l.nom %></b></a><br><small><%= [l.taille, l.couleur].filter(Boolean).join(' / ') %></small></div></div></td>
+          <td class="cache-m"><%= fcfa(l.prix) %></td>
+          <td>
+            <form action="/panier/maj" method="post" style="display:flex;gap:6px;align-items:center">
+              <input type="hidden" name="variante_id" value="<%= l.id %>">
+              <input type="number" name="quantite" value="<%= l.q %>" min="0" max="<%= l.stock %>" onchange="this.form.submit()">
+              <button name="quantite" value="0" style="background:none;border:0;font-size:20px" title="Retirer">×</button>
+            </form>
+          </td>
+          <td><b><%= fcfa(l.total) %></b></td>
+        </tr>
+      <% }) %>
+      </tbody>
+    </table>
+    <div class="recap">
+      <h3>RÉCAPITULATIF</h3>
+      <div class="l"><span>Sous-total</span><span><%= fcfa(sousTotal) %></span></div>
+      <div class="l" style="color:#666;font-size:14px"><span>Livraison</span><span>calculée à l'étape suivante</span></div>
+      <div class="l t"><span>Total</span><span><%= fcfa(sousTotal) %></span></div>
+      <a class="btn plein" href="/commande" style="margin-top:16px">Commander</a>
+      <a class="btn ligne plein" href="/boutique" style="margin-top:10px">Continuer mes achats</a>
+    </div>
+  </div>
+  <% } %>
+</div>
+<%- include('../partials/shop_bas') %>

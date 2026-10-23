@@ -1,0 +1,57 @@
+<%- include('../partials/admin_haut') %>
+<form class="barre-outils" method="get">
+  <div class="chips">
+    <% [['jour','Aujourd\'hui'],['semaine','Cette semaine'],['mois','Ce mois'],['mois_prec','Mois dernier'],['annee','Cette année']].forEach(function(x){ %>
+    <a href="?p=<%= x[0] %>" class="<%= p===x[0]?'actif':'' %>"><%= x[1] %></a><% }) %>
+  </div>
+  <input type="hidden" name="p" value="perso">
+  <label>Du <input type="date" name="du" value="<%= du %>"></label><label>Au <input type="date" name="au" value="<%= au %>"></label>
+  <button class="btn sec">Afficher</button>
+  <div class="droite"><a class="btn sec" href="/gestion/rapports/export.csv?p=perso&du=<%= du %>&au=<%= au %>">⬇ Export Excel (CSV)</a><button type="button" class="btn sec" onclick="print()"><%- icon('imprimer') %></button></div>
+</form>
+<p style="color:#6e7387;margin-top:-6px">Période du <b><%= dateFr(du) %></b> au <b><%= dateFr(au) %></b></p>
+
+<div class="kpis">
+  <div class="kpi k-vert"><div><small>Chiffre d'affaires</small><b><%= nombre(r.ca) %> FCFA</b><span class="var">dont site web : <%= nombre(r.ca_site) %></span></div></div>
+  <div class="kpi k-bleu"><div><small>Nombre de ventes</small><b><%= r.nb %></b><span class="var"><%= r.articles %> articles vendus</span></div></div>
+  <div class="kpi k-violet"><div><small>Panier moyen</small><b><%= nombre(r.panier) %> FCFA</b></div></div>
+  <div class="kpi k-orange"><div><small>Remises accordées</small><b><%= nombre(r.remises) %> FCFA</b></div></div>
+</div>
+
+<% if (fin) { %>
+<div class="carte" style="border:2px solid #1d2033">
+  <h2>🔒 Résultat financier <small>— visible uniquement par la propriétaire</small></h2>
+  <div class="kpis" style="margin:0;grid-template-columns:repeat(5,1fr)">
+    <div class="kpi k-sombre"><div><small>Coût des articles vendus</small><b><%= nombre(fin.cout) %></b></div></div>
+    <div class="kpi k-bleu"><div><small>Marge brute</small><b><%= nombre(fin.marge) %></b><span class="var">Taux : <%= fin.taux %> %</span></div></div>
+    <div class="kpi k-rouge"><div><small>Dépenses</small><b><%= nombre(fin.depenses) %></b></div></div>
+    <div class="kpi <%= fin.benefice>=0?'k-vert':'k-rouge' %>"><div><small>Bénéfice net</small><b><%= nombre(fin.benefice) %></b></div></div>
+    <div class="kpi k-orange"><div><small>Achats fournisseurs</small><b><%= nombre(fin.achats) %></b></div></div>
+  </div>
+  <% if (fin.depParCat.length) { %><p style="margin:14px 0 0;color:#6e7387">Dépenses : <% fin.depParCat.forEach(function(d, i){ %><%= i ? ' · ' : '' %><%= d.l %> <b><%= fcfa(d.total) %></b><% }) %></p><% } %>
+</div>
+<% } %>
+
+<div class="carte"><h2>Ventes par jour</h2><div style="height:260px"><canvas id="gJours"></canvas></div></div>
+
+<div class="grid2">
+  <div class="carte"><h2>Articles les plus vendus</h2>
+    <div class="table-scroll"><table class="t"><tr><th>Article</th><th class="n">Qté</th><th class="n">CA</th><% if (fin) { %><th class="n">Marge</th><% } %></tr>
+    <% top.forEach(function(t){ %><tr><td><%= t.l %></td><td class="n"><%= t.nb %></td><td class="n"><%= fcfa(t.total) %></td><% if (fin) { %><td class="n"><%= fcfa(t.marge) %></td><% } %></tr><% }) %></table></div>
+    <% if (!top.length) { %><div class="vide">Aucune vente.</div><% } %>
+  </div>
+  <div>
+    <div class="carte"><h2>Par mode de paiement</h2><table class="t"><% parMode.forEach(function(m){ %><tr><td><%= m.l %></td><td class="n"><%= m.nb %></td><td class="n"><b><%= fcfa(m.total) %></b></td></tr><% }) %></table></div>
+    <div class="carte"><h2>Par vendeuse</h2><table class="t"><% parVendeur.forEach(function(m){ %><tr><td><%= m.l %></td><td class="n"><%= m.nb %></td><td class="n"><b><%= fcfa(m.total) %></b></td></tr><% }) %></table></div>
+  </div>
+</div>
+<div class="carte"><h2>Par catégorie</h2><table class="t"><tr><th>Catégorie</th><th class="n">Articles</th><th class="n">CA</th><% if (fin) { %><th class="n">Marge</th><% } %></tr>
+  <% parCat.forEach(function(c){ %><tr><td><%= c.l %></td><td class="n"><%= c.nb %></td><td class="n"><%= fcfa(c.total) %></td><% if (fin) { %><td class="n"><%= fcfa(c.marge) %></td><% } %></tr><% }) %></table></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" integrity="sha384-bs/nf9FbdNouRbMiFcrcZfLXYPKiPaGVGplVbv7dLGECccEXDW+S3zjqSKR5ZEaD" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+if (window.Chart) new Chart(document.getElementById('gJours'), { type: 'bar',
+  data: { labels: <%- JSON.stringify(parJour.map(function(x){return x.j})) %>, datasets: [{ data: <%- JSON.stringify(parJour.map(function(x){return x.total})) %>, backgroundColor: '#5b4ee8', borderRadius: 4, maxBarThickness: 26 }] },
+  options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { color: '#f0f1f6' } } } } });
+</script>
+<%- include('../partials/admin_bas') %>

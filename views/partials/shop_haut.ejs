@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title><%= titre ? titre + ' – ' : '' %><%= s.nom_boutique %></title>
+<meta name="description" content="<%= s.description_footer %>">
+<link rel="icon" href="<%= s.logo_image_id ? '/img/' + s.logo_image_id : '/static/img/logo.png' %>">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/shop.css?v=1">
+<% if (s.couleur_accent && s.couleur_accent !== '#000000') { %><style>.topbar,.offre,.btn,.newsletter button,.badge,.pagination .actif{background:<%= s.couleur_accent %>!important;border-color:<%= s.couleur_accent %>!important}</style><% } %>
+</head>
+<body>
+<% if (s.bandeau_actif === '1' && s.bandeau_texte) { %>
+<div class="topbar"><%= s.bandeau_texte %> <% if (s.bandeau_lien_texte) { %><a href="/boutique"><%= s.bandeau_lien_texte %></a><% } %></div>
+<% } %>
+<header class="header" id="header">
+  <div class="wrap">
+    <nav class="nav">
+      <div class="nav-col">
+        <button class="burger" aria-label="Menu" data-ouvrir="tiroir"><svg width="20" height="16" viewBox="0 0 20 16"><path d="M1 2h18M1 8h18M1 14h18" stroke="#000" stroke-width="1.6"/></svg></button>
+        <ul class="nav-links">
+          <li><a href="/" class="<%= currentPath === '/' ? 'actif' : '' %>">Accueil</a></li>
+          <li><a href="/boutique" class="<%= currentPath === '/boutique' ? 'actif' : '' %>">Boutique</a></li>
+          <li><a href="/hommes">Hommes <svg class="chev" viewBox="0 0 10 10"><path d="M1 3l4 4 4-4" fill="none" stroke="#000"/></svg></a>
+            <div class="dropdown"><% menuHommes.forEach(function(c){ %><a href="/categorie/<%= c.slug %>"><%= c.nom %></a><% }) %></div></li>
+          <li><a href="/femmes">Femmes <svg class="chev" viewBox="0 0 10 10"><path d="M1 3l4 4 4-4" fill="none" stroke="#000"/></svg></a>
+            <div class="dropdown"><% menuFemmes.forEach(function(c){ %><a href="/categorie/<%= c.slug %>"><%= c.nom %></a><% }) %></div></li>
+        </ul>
+      </div>
+    </nav>
+    <a href="/" class="logo"><img src="<%= s.logo_image_id ? '/img/' + s.logo_image_id : '/static/img/logo.png' %>" alt="<%= s.nom_boutique %>"></a>
+    <div class="icons">
+      <button aria-label="Rechercher" data-ouvrir="recherche"><svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.6"><circle cx="10.5" cy="10.5" r="7"/><path d="M16 16l5.5 5.5"/></svg></button>
+      <a href="/favoris" aria-label="Favoris" class="cache-m"><svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5"><path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.3a4.3 4.3 0 0 1 7.5 2.5C19.5 15.4 12 20 12 20z"/></svg><span class="badge" id="nbFavoris" style="display:none">0</span></a>
+      <a href="/suivi" aria-label="Suivre ma commande" class="cache-m"><svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4.5 21c.8-4 4-6 7.5-6s6.7 2 7.5 6"/></svg></a>
+      <a href="/panier" aria-label="Panier"><svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5"><path d="M2 3h3l2.4 12.2a1.5 1.5 0 0 0 1.5 1.2h9.4a1.5 1.5 0 0 0 1.5-1.1L22 7H6"/><circle cx="9.5" cy="20.5" r="1.3"/><circle cx="18" cy="20.5" r="1.3"/></svg><span class="badge" id="nbPanier"><%= nbPanier %></span></a>
+    </div>
+  </div>
+</header>
+
+<div class="recherche" id="recherche">
+  <button class="fermer" data-fermer="recherche" aria-label="Fermer">×</button>
+  <form action="/recherche"><input name="q" placeholder="Rechercher un article…" autocomplete="off"><button class="btn" style="padding:0 22px">OK</button></form>
+</div>
+
+<div class="tiroir" id="tiroir">
+  <div class="voile" data-fermer="tiroir"></div>
+  <div class="panneau">
+    <img src="<%= s.logo_image_id ? '/img/' + s.logo_image_id : '/static/img/logo.png' %>" alt="" style="height:60px">
+    <h4>MENU</h4>
+    <a href="/">Accueil</a><a href="/boutique">Boutique</a><a href="/favoris">Mes favoris</a><a href="/suivi">Suivre ma commande</a>
+    <h4>HOMMES</h4><% menuHommes.forEach(function(c){ %><a href="/categorie/<%= c.slug %>"><%= c.nom %></a><% }) %>
+    <h4>FEMMES</h4><% menuFemmes.forEach(function(c){ %><a href="/categorie/<%= c.slug %>"><%= c.nom %></a><% }) %>
+    <h4>CONTACT</h4><a href="tel:<%= s.telephone.replace(/[^\d+]/g,'') %>"><%= s.telephone %></a>
+  </div>
+</div>
+<main>
+<% if (flash) { %><div class="wrap" style="padding-top:20px"><div class="alerte <%= flash.type %>"><%= flash.msg %></div></div><% } %>

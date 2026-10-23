@@ -1,0 +1,13 @@
+<%- include('../partials/admin_haut') %>
+<div class="barre-outils"><a class="btn sec" href="/gestion/stock">← Stock</a></div>
+<% var libs = { vente: ['Vente','info'], achat: ['Approvisionnement','ok'], ajustement: ['Ajustement','faible'], inventaire: ['Inventaire','gris'], annulation: ['Annulation vente','ok'] }; %>
+<div class="carte"><div class="table-scroll"><table class="t">
+  <tr><th>Date</th><th>Article</th><th>Type</th><th class="n">Quantité</th><th class="n">Stock après</th><th>Référence / motif</th><th>Par</th></tr>
+  <% mouvements.forEach(function(m){ var l = libs[m.type] || [m.type,'gris']; %>
+  <tr><td><%= dateFr(m.created_at, true) %></td><td><%= m.nom %> <small style="color:#6e7387"><%= [m.taille, m.couleur].filter(Boolean).join(' / ') %></small></td>
+    <td><span class="tag <%= l[1] %>"><%= l[0] %></span></td>
+    <td class="n" style="color:<%= m.quantite < 0 ? '#e5484d' : '#22a45d' %>;font-weight:700"><%= m.quantite > 0 ? '+' : '' %><%= m.quantite %></td>
+    <td class="n"><%= m.stock_apres %></td><td><%= [m.reference, m.motif].filter(Boolean).join(' · ') %></td><td><%= m.utilisateur || '—' %></td></tr>
+  <% }) %>
+</table></div><% if (!mouvements.length) { %><div class="vide">Aucun mouvement.</div><% } %></div>
+<%- include('../partials/admin_bas') %>

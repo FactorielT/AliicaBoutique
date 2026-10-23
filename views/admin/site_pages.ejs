@@ -1,0 +1,29 @@
+<%- include('../partials/admin_haut') %>
+<div class="barre-outils"><a class="btn sec" href="/gestion/site">← Mon site web</a><div class="droite"><a class="btn" href="/gestion/site/pages/nouvelle"><%- icon('plus') %> Nouvelle page</a></div></div>
+<div class="grid2">
+  <div class="carte">
+    <% if (edit) { %>
+    <h2><%= edit.id ? 'Modifier la page' : 'Nouvelle page' %></h2>
+    <form method="post" action="/gestion/site/pages">
+      <% if (edit.id) { %><input type="hidden" name="id" value="<%= edit.id %>"><% } %>
+      <div class="champ"><label class="l">Titre</label><input type="text" name="titre" value="<%= edit.titre || '' %>" required></div>
+      <div class="champ"><label class="l">Contenu</label><textarea name="contenu" rows="14"><%= edit.contenu || '' %></textarea>
+        <div class="aide">Ligne vide = nouveau paragraphe · <b># Titre</b> en début de ligne = intertitre · <b>**gras**</b> · lignes commençant par « - » = liste</div></div>
+      <label class="case"><input type="checkbox" name="publie" value="1" <%= edit.publie ? 'checked' : '' %>> Publiée (lien visible dans le bas du site)</label>
+      <button class="btn">Enregistrer</button>
+      <% if (edit.slug) { %><a class="btn sec" href="/page/<%= edit.slug %>" target="_blank">Voir</a><% } %>
+    </form>
+    <% } else { %><div class="vide">Choisissez une page à modifier dans la liste.</div><% } %>
+  </div>
+  <div class="carte">
+    <h2>Pages</h2>
+    <table class="t">
+      <% pages.forEach(function(p){ %>
+      <tr><td><a href="/gestion/site/pages/<%= p.id %>"><b><%= p.titre %></b></a><br><small style="color:#6e7387">/page/<%= p.slug %></small></td>
+        <td><span class="tag <%= p.publie?'ok':'gris' %>"><%= p.publie?'Publiée':'Masquée' %></span></td>
+        <td><form method="post" action="/gestion/site/pages/<%= p.id %>/supprimer" data-confirm="Supprimer cette page ?"><button class="btn sec petit">×</button></form></td></tr>
+      <% }) %>
+    </table>
+  </div>
+</div>
+<%- include('../partials/admin_bas') %>

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title><%= titre %> – Gestion ALIICA</title>
+<link rel="icon" href="/static/img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/admin.css?v=1">
+</head>
+<body>
+<%
+  var menu = [
+    ['', 'Principal'],
+    ['/gestion', 'Tableau de bord', 'dashboard', 'dashboard'],
+    ['/gestion/caisse', 'Caisse', 'caisse', 'caisse'],
+    ['/gestion/ventes', 'Ventes', 'ventes', 'ventes'],
+    ['', 'Catalogue & stock'],
+    ['/gestion/articles', 'Articles', 'articles', 'articles'],
+    ['/gestion/stock', 'Stock', 'stock', 'stock'],
+    ['/gestion/achats', 'Approvisionnement', 'appro', 'achats'],
+    ['', 'Contacts'],
+    ['/gestion/clients', 'Clients', 'clients', 'clients'],
+    ['/gestion/fournisseurs', 'Fournisseurs', 'fournisseurs', 'fournisseurs'],
+    ['', 'Activité'],
+    ['/gestion/rapports', 'Rapports', 'rapports', 'rapports'],
+    ['/gestion/depenses', 'Dépenses', 'depenses', 'depenses', true],
+    ['', 'Site web'],
+    ['/gestion/site', 'Mon site web', 'site', 'site'],
+    ['/gestion/commandes', 'Commandes web', 'commandes', 'commandes'],
+    ['', ''],
+    ['/gestion/parametres', 'Paramètres', 'parametres', 'parametres'],
+  ];
+%>
+<div class="app">
+  <aside class="side" id="side">
+    <a class="marque" href="/gestion"><img src="/static/img/logo.png" alt=""><span><b>ALIICA</b><small>BOUTIQUE · GESTION</small></span></a>
+    <nav>
+      <% menu.forEach(function(m){ if (!m[1] && !m[0]) return; if (!m[0]) { %><div class="grp"><%= m[1] %></div><% return; }
+         if (m[4] && !estProprietaire) return; %>
+        <a href="<%= m[0] %>" class="<%= page === m[3] ? 'actif' : '' %>"><%- icon(m[2]) %><%= m[1] %>
+          <% if (m[3] === 'commandes' && nbCommandesNouvelles) { %><span class="pastille"><%= nbCommandesNouvelles %></span><% } %>
+          <% if (m[3] === 'stock' && nbAlertes) { %><span class="pastille" style="background:#f59e0b"><%= nbAlertes %></span><% } %>
+        </a>
+      <% }) %>
+      <a href="/" target="_blank"><%- icon('oeil') %>Voir le site</a>
+    </nav>
+    <div class="moi">
+      <div class="avatar"><%= user.nom.trim().charAt(0).toUpperCase() %></div>
+      <div><b style="color:#fff;font-size:13.5px"><%= user.nom %></b><small><%= user.role === 'proprietaire' ? 'Propriétaire' : 'Gérante' %></small></div>
+      <a href="/gestion/deconnexion" title="Se déconnecter"><%- icon('sortie', 20) %></a>
+    </div>
+  </aside>
+  <div class="voile-mobile" id="voile" onclick="document.getElementById('side').classList.remove('open');this.classList.remove('open')"></div>
+  <div class="main">
+    <div class="topbar">
+      <button class="burger" onclick="document.getElementById('side').classList.add('open');document.getElementById('voile').classList.add('open')"><%- icon('menu', 24) %></button>
+      <h1><%= titre %></h1>
+      <span class="date"><%= dateLongue() %></span>
+    </div>
+    <div class="contenu">
+      <% if (flash) { %><div class="alerte <%= flash.type %>"><%= flash.msg %></div><% } %>

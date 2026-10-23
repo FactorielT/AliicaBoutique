@@ -1,0 +1,50 @@
+<%- include('../partials/shop_haut') %>
+<div class="wrap">
+  <div class="fil" style="padding:26px 0"><a href="/">Accueil</a> / <a href="/categorie/<%= p.categorie_slug %>"><%= p.categorie %></a> / <b><%= p.nom %></b></div>
+  <div class="fiche">
+    <div class="galerie">
+      <div class="vignettes">
+        <% images.forEach(function(im, i){ %><img src="/img/<%= im.image_id %>" class="<%= i===0?'actif':'' %>" data-grand="/img/<%= im.image_id %>" alt=""><% }) %>
+      </div>
+      <div class="principale"><img id="imgPrincipale" src="<%= imgUrl(images[0] && images[0].image_id) %>" alt="<%= p.nom %>"></div>
+    </div>
+    <div>
+      <div class="meta" style="font-size:14px;color:#666"><%= p.marque ? p.marque + ' · ' : '' %><%= p.categorie %></div>
+      <h1><%= p.nom %></h1>
+      <div class="prix"><%= fcfa(p.prix_promo || p.prix_vente) %><% if (p.prix_promo) { %><del><%= fcfa(p.prix_vente) %></del><% } %></div>
+      <% if (p.description) { %><div class="desc"><%- texteEnHtml(p.description) %></div><% } %>
+
+      <%
+        var tailles = [...new Set(variantes.map(function(v){return v.taille}).filter(Boolean))];
+        var couleurs = [...new Set(variantes.map(function(v){return v.couleur}).filter(Boolean))];
+      %>
+      <form id="formAchat" action="/panier/ajouter" method="post" data-variantes='<%- JSON.stringify(variantes).replace(/</g,"\\u003c").replace(/'/g,"\\u0027") %>'>
+        <input type="hidden" name="variante_id" id="varianteId" value="<%= variantes.length === 1 ? variantes[0].id : '' %>">
+        <% if (tailles.length) { %>
+        <div class="choix"><div class="lbl">Taille</div><div class="pastilles" data-axe="taille"><% tailles.forEach(function(t){ %><button type="button" data-val="<%= t %>"><%= t %></button><% }) %></div></div>
+        <% } %>
+        <% if (couleurs.length) { %>
+        <div class="choix"><div class="lbl">Couleur</div><div class="pastilles" data-axe="couleur"><% couleurs.forEach(function(c){ %><button type="button" data-val="<%= c %>"><%= c %></button><% }) %></div></div>
+        <% } %>
+        <div class="achat">
+          <div class="qte"><button type="button" data-qte="-1">−</button><input name="quantite" id="quantite" value="1" inputmode="numeric"><button type="button" data-qte="1">+</button></div>
+          <button class="btn" id="btnAjout" style="flex:1">Ajouter au panier</button>
+        </div>
+        <div class="dispo" id="dispo"></div>
+      </form>
+      <% if (s.whatsapp) { %>
+      <a class="btn wa plein" style="margin-top:12px" target="_blank" rel="noopener"
+         href="https://wa.me/<%= s.whatsapp.replace(/\D/g,'') %>?text=<%= encodeURIComponent('Bonjour, je suis intéressé(e) par : ' + p.nom + ' (' + fcfa(p.prix_promo || p.prix_vente) + ')') %>">Commander sur WhatsApp</a>
+      <% } %>
+      <p style="margin-top:26px;font-size:14px;color:#555;line-height:1.7"><%= s.livraison_texte %></p>
+    </div>
+  </div>
+
+  <% if (similaires.length) { %>
+  <section class="bloc" style="padding-top:20px">
+    <div class="onglets"><button class="actif">Vous aimerez aussi</button></div>
+    <div class="grille" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))"><% similaires.forEach(function(x){ %><%- include('../partials/carte', { p: x }) %><% }) %></div>
+  </section>
+  <% } %>
+</div>
+<%- include('../partials/shop_bas') %>

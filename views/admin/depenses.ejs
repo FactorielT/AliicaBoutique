@@ -1,0 +1,27 @@
+<%- include('../partials/admin_haut') %>
+<div class="confid">🔒 Cette rubrique est visible uniquement par la propriétaire.</div>
+<div class="grid2">
+  <div class="carte">
+    <h2>Dépenses du mois
+      <form class="droite" method="get"><input type="month" name="mois" value="<%= mois %>" onchange="this.form.submit()" style="width:auto"></form></h2>
+    <table class="t"><tr><th>Date</th><th>Libellé</th><th>Catégorie</th><th class="n">Montant</th><th></th></tr>
+      <% depenses.forEach(function(d){ %>
+      <tr><td><%= dateFr(d.date_depense) %></td><td><%= d.libelle %></td><td><span class="tag gris"><%= d.categorie %></span></td><td class="n"><b><%= fcfa(d.montant) %></b></td>
+        <td><form method="post" action="/gestion/depenses/<%= d.id %>/supprimer" data-confirm="Supprimer cette dépense ?"><button class="btn sec petit">×</button></form></td></tr>
+      <% }) %>
+      <tr><td colspan="3" class="n"><b>Total</b></td><td class="n"><b style="font-size:16px"><%= fcfa(total) %></b></td><td></td></tr>
+    </table>
+    <% if (!depenses.length) { %><div class="vide">Aucune dépense ce mois-ci.</div><% } %>
+  </div>
+  <div class="carte">
+    <h2>Ajouter une dépense</h2>
+    <form method="post" action="/gestion/depenses">
+      <div class="champ"><label class="l">Date</label><input type="date" name="date_depense" value="<%= new Date().toISOString().slice(0,10) %>"></div>
+      <div class="champ"><label class="l">Libellé</label><input type="text" name="libelle" required placeholder="Ex : Loyer octobre"></div>
+      <div class="champ"><label class="l">Catégorie</label><select name="categorie"><% CATS_DEP.forEach(function(c){ %><option><%= c %></option><% }) %></select></div>
+      <div class="champ"><label class="l">Montant (FCFA)</label><input type="number" name="montant" min="1" required></div>
+      <button class="btn">Ajouter</button>
+    </form>
+  </div>
+</div>
+<%- include('../partials/admin_bas') %>
